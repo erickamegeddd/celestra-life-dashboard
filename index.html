@@ -758,7 +758,7 @@ function renderViewsBar(){
   var chips = views.map(function(v){
     var active = STATE.viewId === v.id;
     var safeId = String(v.id).replace(/"/g, '');
-    return '<button class="view-chip'+(active?' active':'\')+'" data-vid="'+safeId+'" onclick="activateView(this.dataset.vid)">'+esc(v.name)+'</button>';
+    return '<button class="view-chip'+(active?' active':'')+'" data-vid="'+safeId+'" onclick="activateView(this.dataset.vid)">'+esc(v.name)+'</button>';
   }).join('');
   var allActive = STATE.viewId === 'all';
   bar.innerHTML = chips; // no "All Accounts" chip — clicking active view deactivates it
