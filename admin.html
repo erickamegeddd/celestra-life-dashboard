@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>User Management — Celestra Dashboard</title>
+<style>
+  :root{--bg:#f5f6fa;--panel:#fff;--ink:#1d2230;--muted:#878da0;--line:#eceef4;--accent:#6c5ce7;--accent-soft:#efedfe;--pos:#1bbf83;--neg:#ef5b6b}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);font-size:13px;-webkit-font-smoothing:antialiased}
+  .app{display:flex;min-height:100vh}
+  /* Sidebar */
+  .side{width:208px;background:var(--panel);border-right:1px solid var(--line);padding:18px 14px;flex:none;position:sticky;top:0;align-self:flex-start;height:100vh;display:flex;flex-direction:column;overflow-y:auto}
+  .brand{display:flex;align-items:center;gap:9px;font-weight:700;font-size:15px;margin-bottom:22px;padding:4px}
+  .brand .dot{width:22px;height:22px;border-radius:7px;background:linear-gradient(135deg,#6c5ce7,#9b8cff)}
+  .nav a{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:9px;color:var(--muted);text-decoration:none;font-weight:600;margin-bottom:2px;cursor:pointer}
+  .nav a.active,.nav a:hover{background:var(--accent-soft);color:var(--accent)}
+  .side .who{margin-top:auto;padding:14px 8px 4px;display:flex;align-items:center;gap:9px;border-top:1px solid var(--line)}
+  .who .av{width:28px;height:28px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px}
+  /* Main */
+  .main{flex:1;padding:28px 32px;max-width:1000px}
+  .page-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:28px}
+  .page-header h1{font-size:20px;font-weight:700}
+  /* Buttons */
+  .btn{border:none;cursor:pointer;border-radius:9px;padding:9px 18px;font-size:12.5px;font-weight:600;transition:background .12s}
+  .btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{background:#5a4bd0}
+  .btn-ghost{background:var(--line);color:var(--ink)}.btn-ghost:hover{background:#dde0e9}
+  .btn-danger{background:#fde8ea;color:var(--neg)}.btn-danger:hover{background:#fbd0d4}
+  .btn-sm{padding:5px 12px;font-size:11.5px}
+  /* Auth gate */
+  .auth-gate{background:var(--panel);border-radius:14px;padding:36px;max-width:380px;margin:60px auto;text-align:center;box-shadow:0 2px 12px rgba(20,23,40,.08)}
+  .auth-gate h3{font-size:17px;margin-bottom:8px}
+  .auth-gate p{color:var(--muted);font-size:12.5px;margin-bottom:20px}
+  .form-control{width:100%;border:1.5px solid var(--line);border-radius:9px;padding:10px 13px;font-size:13px;color:var(--ink);outline:none;transition:border-color .15s}
+  .form-control:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(108,92,231,.12)}
+  /* Table */
+  .um-table{width:100%;border-collapse:collapse;background:var(--panel);border-radius:14px;overflow:hidden;box-shadow:0 1px 4px rgba(20,23,40,.07)}
+  .um-table th{text-align:left;padding:12px 18px;font-size:11px;font-weight:700;color:var(--muted);background:var(--bg);border-bottom:1px solid var(--line);text-transform:uppercase;letter-spacing:.04em}
+  .um-table td{padding:14px 18px;font-size:12.5px;border-bottom:1px solid var(--line);vertical-align:middle}
+  .um-table tr:last-child td{border-bottom:none}
+  .um-table tbody tr:hover td{background:#fbfbfe}
+  .um-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+  .badge{display:inline-block;background:var(--accent-soft);color:var(--accent);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700}
+  .empty-row{text-align:center;padding:48px;color:var(--muted);font-style:italic}
+  /* Modal */
+  .modal-overlay{position:fixed;inset:0;background:rgba(10,12,30,.45);display:flex;align-items:center;justify-content:center;z-index:9999;backdrop-filter:blur(3px)}
+  .modal{background:var(--panel);border-radius:16px;padding:30px;width:520px;max-width:94vw;max-height:90vh;overflow-y:auto;box-shadow:0 12px 48px rgba(10,12,30,.2)}
+  .modal h3{font-size:15px;font-weight:700;margin-bottom:20px}
+  .form-group{margin-bottom:15px}
+  .form-group label{display:block;font-size:11px;font-weight:700;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em}
+  .modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:22px;padding-top:16px;border-top:1px solid var(--line)}
+  /* Checklist */
+  .acct-checklist{border:1.5px solid var(--line);border-radius:10px;max-height:260px;overflow-y:auto}
+  .acct-check-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line);cursor:pointer}
+  .acct-check-item:last-child{border-bottom:none}
+  .acct-check-item:hover{background:var(--accent-soft)}
+  .acct-check-item input[type=checkbox]{width:15px;height:15px;accent-color:var(--accent);cursor:pointer;flex-shrink:0}
+  .acct-check-item label{cursor:pointer;flex:1;font-size:12.5px}
+  .acct-check-grp{padding:6px 14px;font-size:10.5px;font-weight:700;color:var(--muted);background:var(--bg);text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--line)}
+  .select-all-row{display:flex;align-items:center;gap:8px;padding:8px 14px;border-bottom:1px solid var(--line);background:var(--bg)}
+  .select-all-row label{font-size:11.5px;font-weight:600;cursor:pointer;color:var(--muted)}
+  /* Link box */
+  .link-box{background:var(--bg);border:1.5px solid var(--line);border-radius:9px;padding:10px 13px;font-size:12px;font-family:monospace;color:var(--muted);word-break:break-all;margin-top:8px}
+  /* Toast */
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;border-radius:10px;padding:10px 20px;font-size:13px;z-index:99999;opacity:0;transition:opacity .2s;pointer-events:none}
+  .toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="brand"><span class="dot"></span> Celestra Admin</div>
+    <nav class="nav">
+      <a href="/">📊 Dashboard</a>
+      <a class="active">👥 Users</a>
+    </nav>
+    <div class="who"><span class="av">RS</span><div><div style="font-weight:700">Admin</div><div style="color:var(--muted);font-size:11px">User management</div></div></div>
+  </aside>
+
+  <main class="main">
+    <!-- Auth gate -->
+    <div id="auth-gate" class="auth-gate">
+      <h3>🔐 Admin Sign In</h3>
+      <p>Enter your admin credentials to manage users.</p>
+      <div class="form-group" style="text-align:left">
+        <label>Username</label>
+        <input type="text" id="admin-username" class="form-control" placeholder="admin" autocomplete="username" />
+      </div>
+      <div class="form-group" style="text-align:left;margin-top:12px">
+        <label>Password</label>
+        <input type="password" id="secret-input" class="form-control" placeholder="••••••••" autocomplete="current-password" />
+      </div>
+      <button class="btn btn-primary" style="width:100%;margin-top:14px" onclick="submitAuth()">Sign In</button>
+      <p id="auth-err" style="color:var(--neg);font-size:12px;margin-top:10px;display:none">Incorrect username or password.</p>
+    </div>
+
+    <!-- User management content -->
+    <div id="um-content" style="display:none">
+      <div class="page-header">
+        <h1>User Management</h1>
+        <button class="btn btn-primary" onclick="openModal()">+ New User</button>
+      </div>
+      <table class="um-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Username</th>
+            <th>Visible Accounts</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="users-tbody">
+          <tr><td colspan="4" class="empty-row">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+<!-- Create / Edit Modal -->
+<div id="user-modal" class="modal-overlay" style="display:none" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <h3 id="modal-title">New User</h3>
+    <input type="hidden" id="edit-id" />
+    <div class="form-group">
+      <label>Full Name</label>
+      <input type="text" id="um-name" class="form-control" placeholder="e.g. Frank Sena" />
+    </div>
+    <div class="form-group">
+      <label>Username</label>
+      <input type="text" id="um-username" class="form-control" placeholder="e.g. frank" autocomplete="off" />
+    </div>
+    <div class="form-group">
+      <label>Password <span style="font-weight:400;text-transform:none;letter-spacing:0">(leave blank to keep existing)</span></label>
+      <input type="password" id="um-password" class="form-control" placeholder="••••••••" autocomplete="new-password" />
+    </div>
+    <div class="form-group">
+      <label>Role</label>
+      <select id="um-role" class="form-control" onchange="toggleAdminRole(this.value==='admin')">
+        <option value="user">User — limited to assigned accounts</option>
+        <option value="admin">Admin — sees all accounts</option>
+      </select>
+    </div>
+    <div class="form-group" id="um-accounts-group">
+      <label>Visible Accounts <span style="font-weight:400;text-transform:none;letter-spacing:0" id="admin-note">(admin sees all accounts automatically)</span></label>
+      <div class="acct-checklist" id="um-acct-list">Loading…</div>
+    </div>
+    <div id="modal-link" style="display:none">
+      <label class="form-group" style="display:block;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px">Access Link</label>
+      <div class="link-box" id="modal-link-text"></div>
+      <button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="copyModalLink()">🔗 Copy Link</button>
+    </div>
+    <div id="modal-err" style="color:var(--neg);font-size:12px;display:none;margin-top:8px"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" id="save-btn" onclick="saveUser()">Save User</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+var ADMIN_KEY = 'celestra_admin_secret';
+var ADMIN_USER_KEY = 'celestra_admin_user';
+var ADMIN_EXPIRY_KEY = 'celestra_admin_expiry';
+var SESSION_DAYS = 30;
+var _users = [];
+var _editingId = null;
+var _knownAccounts = [];
+var ACCT_GROUPS = {
+  'PayDiverse/Elm': ['3000','9613','1360','1378','3292'],
+  'Celestra/Fortuna': ['1007','6576','6852','6860'],
+  "Frank's Personal": ['8238','6469','9575','0928','5917','5150','8619','1539','4005','1009','9225','566','728','3988','3438','3439','9785','340','707','btc wallet'],
+  'Perseverance': ['8808']
+};
+
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function getAdminSecret(){
+  var expiry = localStorage.getItem(ADMIN_EXPIRY_KEY);
+  if(expiry && Date.now() > parseInt(expiry,10)){
+    localStorage.removeItem(ADMIN_KEY); localStorage.removeItem(ADMIN_USER_KEY); localStorage.removeItem(ADMIN_EXPIRY_KEY);
+    return '';
+  }
+  return localStorage.getItem(ADMIN_KEY)||'';
+}
+function setAdminSecret(s,u){
+  localStorage.setItem(ADMIN_KEY, s);
+  localStorage.setItem(ADMIN_USER_KEY, u||'admin');
+  localStorage.setItem(ADMIN_EXPIRY_KEY, String(Date.now() + SESSION_DAYS*24*60*60*1000));
+}
+function getAdminUser(){ return localStorage.getItem(ADMIN_USER_KEY)||'admin'; }
+
+function getGroupFor(name) {
+  var n = (name||'').toLowerCase();
+  if(n === 'account') return "Frank's Personal";
+  for(var g in ACCT_GROUPS) {
+    var keys = ACCT_GROUPS[g];
+    for(var i=0;i<keys.length;i++) if(n.indexOf(keys[i])!==-1) return g;
+  }
+  return "Rob's Personal";
+}
+
+// Init
+(function(){
+  document.getElementById('secret-input').addEventListener('keydown', function(e){ if(e.key==='Enter') submitAuth(); });
+  document.getElementById('admin-username').addEventListener('keydown', function(e){ if(e.key==='Enter') document.getElementById('secret-input').focus(); });
+  // Restore persistent session if valid
+  var savedSecret = getAdminSecret();
+  var savedUser = getAdminUser();
+  if(savedSecret){
+    verifyAndLoad(savedUser, savedSecret);
+  } else {
+    document.getElementById('admin-username').focus();
+  }
+})();
+
+function submitAuth(){
+  var u = (document.getElementById('admin-username').value||'').trim();
+  var s = document.getElementById('secret-input').value.trim();
+  if(!u || !s) return;
+  verifyAndLoad(u, s);
+}
+
+function verifyAndLoad(username, secret){
+  fetch('/api/users', { headers: { 'Authorization': 'Bearer '+secret, 'X-Admin-Username': username } })
+    .then(function(r){ return r.json().then(function(j){ return {ok:r.ok,body:j}; }); })
+    .then(function(res){
+      if(!res.ok){ showAuthErr(); return; }
+      setAdminSecret(secret, username);
+      _users = res.body.users || [];
+      document.getElementById('auth-gate').style.display = 'none';
+      document.getElementById('um-content').style.display = 'block';
+      renderTable();
+      loadAccountList();
+    })
+    .catch(function(){ showAuthErr(); });
+}
+
+function showAuthErr(){
+  var e = document.getElementById('auth-err');
+  e.style.display = 'block';
+  setTimeout(function(){ e.style.display='none'; }, 3000);
+}
+
+function loadAccountList(){
+  // Fetch account list from SimpleFIN (1 day of data — minimal, fast)
+  var yesterday = new Date(); yesterday.setDate(yesterday.getDate()-1);
+  var yd = yesterday.toISOString().split('T')[0];
+  fetch('/api/data?start_date='+yd)
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      _knownAccounts = Object.keys(data.accounts||{}).sort();
+    })
+    .catch(function(){ _knownAccounts = []; });
+}
+
+function apiCall(method, path, body){
+  return fetch('/api/users'+(path||''),{
+    method: method||'GET',
+    headers:{
+      'Authorization':'Bearer '+getAdminSecret(),
+      'X-Admin-Username': getAdminUser(),
+      'Content-Type':'application/json'
+    },
+    body: body ? JSON.stringify(body) : undefined
+  }).then(function(r){ return r.json().then(function(j){ if(!r.ok) throw new Error(j.error||r.status); return j; }); });
+}
+
+function renderTable(){
+  var tbody = document.getElementById('users-tbody');
+  if(!_users.length){
+    tbody.innerHTML = '<tr><td colspan="4" class="empty-row">No users yet. Click "+ New User" to add one.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = _users.map(function(u){
+    var n = (u.allowed_accounts||[]).length;
+    var link = window.location.origin+'/?token='+u.token;
+    var uid = String(u.id||'');
+    var uname = esc(u.name||'');
+    return '<tr>'+
+      '<td><strong>'+esc(u.name)+'</strong></td>'+
+      '<td style="color:var(--muted)">'+esc(u.username)+'</td>'+
+      '<td>'+(u.is_admin?'<span class="badge" style="background:#fde8ea;color:#ef5b6b">Admin</span>':'<span class="badge">'+n+' acct'+(n!==1?'s':'')+'</span>')+'</td>'+
+      '<td><div class="um-actions">'+
+        '<button class="btn btn-ghost btn-sm" data-link="'+esc(link)+'" onclick="copyLink(this.dataset.link)">🔗 Copy Link</button>'+
+        '<button class="btn btn-ghost btn-sm" data-uid="'+uid+'" onclick="openModal(this.dataset.uid)">Edit</button>'+
+        '<button class="btn btn-danger btn-sm" data-uid="'+uid+'" data-name="'+uname+'" onclick="deleteUser(this.dataset.uid,this.dataset.name)">Delete</button>'+
+      '</div></td>'+
+    '</tr>';
+  }).join('');
+}
+
+function openModal(userId){
+  _editingId = userId||null;
+  document.getElementById('modal-title').textContent = userId ? 'Edit User' : 'New User';
+  document.getElementById('edit-id').value = userId||'';
+  document.getElementById('um-name').value = '';
+  document.getElementById('um-username').value = '';
+  document.getElementById('um-password').value = '';
+  document.getElementById('modal-err').style.display = 'none';
+  document.getElementById('modal-link').style.display = 'none';
+
+  var selected = [];
+  var isAdminRole = false;
+  if(userId){
+    var u = _users.find(function(x){ return x.id===userId; });
+    if(u){
+      document.getElementById('um-name').value = u.name||'';
+      document.getElementById('um-username').value = u.username||'';
+      selected = u.allowed_accounts||[];
+      isAdminRole = !!u.is_admin;
+      var link = window.location.origin+'/?token='+u.token;
+      document.getElementById('modal-link-text').textContent = link;
+      document.getElementById('modal-link').style.display = 'block';
+    }
+  }
+
+  var roleEl = document.getElementById('um-role');
+  if(roleEl) roleEl.value = isAdminRole ? 'admin' : 'user';
+  toggleAdminRole(isAdminRole);
+
+  // Default: pre-select all accounts when new user or admin role
+  var checkSelected = (isAdminRole || !userId) ? _knownAccounts.slice() : selected;
+
+  // Open modal immediately
+  document.getElementById('user-modal').style.display = 'flex';
+  setTimeout(function(){ document.getElementById('um-name').focus(); }, 80);
+
+  // If accounts already loaded, build checklist now; otherwise fetch on-demand
+  if(_knownAccounts.length > 0){
+    buildChecklist(checkSelected);
+  } else {
+    document.getElementById('um-acct-list').innerHTML = '<div style="padding:16px;text-align:center;color:var(--muted)">Loading accounts…</div>';
+    var yesterday = new Date(); yesterday.setDate(yesterday.getDate()-1);
+    var yd = yesterday.toISOString().split('T')[0];
+    fetch('/api/data?start_date='+yd)
+      .then(function(r){ return r.json(); })
+      .then(function(data){
+        _knownAccounts = Object.keys(data.accounts||{}).sort();
+        // Rebuild checkSelected based on final knownAccounts
+        var finalSelected = (isAdminRole || !userId) ? _knownAccounts.slice() : selected;
+        buildChecklist(finalSelected);
+      })
+      .catch(function(){
+        document.getElementById('um-acct-list').innerHTML = '<div style="padding:16px;color:var(--neg);text-align:center">Could not load account list. Please close and try again.</div>';
+      });
+  }
+}
+
+function toggleAdminRole(isAdmin){
+  var grp = document.getElementById('um-accounts-group');
+  var note = document.getElementById('admin-note');
+  if(grp){ grp.style.opacity = isAdmin ? '0.5' : '1'; }
+  if(note){ note.style.display = isAdmin ? 'inline' : 'none'; }
+}
+
+var _modalLinkVal = '';
+function buildChecklist(selected){
+  var list = document.getElementById('um-acct-list');
+  if(!_knownAccounts.length){
+    list.innerHTML = '<div style="padding:14px;color:var(--muted);font-size:12px">Account list loading…</div>';
+    return;
+  }
+  var grouped = {};
+  _knownAccounts.forEach(function(name){
+    var g = getGroupFor(name);
+    if(!grouped[g]) grouped[g] = [];
+    grouped[g].push(name);
+  });
+  var groupOrder = ["Rob's Personal",'Perseverance',"Frank's Personal",'PayDiverse/Elm','Celestra/Fortuna'];
+  Object.keys(grouped).forEach(function(g){ if(groupOrder.indexOf(g)===-1) groupOrder.push(g); });
+
+  var totalSelected = selected.length;
+  var totalAccounts = _knownAccounts.length;
+  var html = '<div class="select-all-row">'+
+    '<input type="checkbox" id="chk-all" onchange="toggleAll(this)"'+(totalSelected===totalAccounts?' checked':'')+'>'+
+    '<label for="chk-all">Select all accounts</label>'+
+  '</div>';
+
+  groupOrder.forEach(function(grp){
+    if(!grouped[grp]||!grouped[grp].length) return;
+    html += '<div class="acct-check-grp">'+esc(grp)+'</div>';
+    grouped[grp].forEach(function(name){
+      var id = 'ck_'+name.replace(/[^a-z0-9]/gi,'_');
+      var checked = selected.indexOf(name)!==-1;
+      html += '<div class="acct-check-item">'+
+        '<input type="checkbox" id="'+id+'" value="'+esc(name)+'"'+(checked?' checked':'')+' onchange="updateSelectAll()">'+
+        '<label for="'+id+'">'+esc(name)+'</label>'+
+      '</div>';
+    });
+  });
+  list.innerHTML = html;
+}
+
+function toggleAll(cb){
+  document.querySelectorAll('#um-acct-list input[type=checkbox]:not(#chk-all)').forEach(function(c){ c.checked = cb.checked; });
+}
+function updateSelectAll(){
+  var all = document.querySelectorAll('#um-acct-list input[type=checkbox]:not(#chk-all)');
+  var checked = document.querySelectorAll('#um-acct-list input[type=checkbox]:not(#chk-all):checked');
+  var allCb = document.getElementById('chk-all');
+  if(allCb) allCb.checked = all.length === checked.length;
+}
+
+function closeModal(){
+  document.getElementById('user-modal').style.display = 'none';
+  _editingId = null;
+}
+
+function saveUser(){
+  var name = document.getElementById('um-name').value.trim();
+  var username = document.getElementById('um-username').value.trim();
+  var password = document.getElementById('um-password').value;
+  var checked = document.querySelectorAll('#um-acct-list input[type=checkbox]:not(#chk-all):checked');
+  var allowed = Array.from(checked).map(function(c){ return c.value; });
+
+  if(!name||!username){ showModalErr('Name and username are required.'); return; }
+  var btn = document.getElementById('save-btn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+
+  var role = (document.getElementById('um-role')||{}).value || 'user';
+  var body = { name:name, username:username, allowed_accounts:allowed, is_admin: role==='admin' };
+  if(password) body.password = password;
+
+  var method = _editingId ? 'PUT' : 'POST';
+  var path = _editingId ? '?id='+_editingId : '';
+
+  apiCall(method, path, body)
+    .then(function(data){
+      closeModal();
+      if(method==='POST') _users.push(data.user);
+      else {
+        var idx = _users.findIndex(function(u){ return u.id===data.user.id; });
+        if(idx!==-1) _users[idx] = data.user;
+      }
+      renderTable();
+      showToast((_editingId?'User updated':'User created')+' — '+name);
+    })
+    .catch(function(e){ showModalErr(e.message); })
+    .finally(function(){ btn.disabled=false; btn.textContent='Save User'; });
+}
+
+function showModalErr(msg){
+  var e = document.getElementById('modal-err');
+  e.textContent = msg; e.style.display = 'block';
+}
+
+function deleteUser(id, name){
+  if(!confirm('Delete user "'+name+'"? Their access link will stop working.')) return;
+  apiCall('DELETE','?id='+id)
+    .then(function(){
+      _users = _users.filter(function(u){ return u.id!==id; });
+      renderTable();
+      showToast('Deleted — '+name);
+    })
+    .catch(function(e){ showToast('Error: '+e.message); });
+}
+
+function copyLink(link){
+  navigator.clipboard.writeText(link)
+    .then(function(){ showToast('Link copied!'); })
+    .catch(function(){ prompt('Copy this link:',link); });
+}
+
+function copyModalLink(){
+  var link = document.getElementById('modal-link-text').textContent;
+  copyLink(link);
+}
+
+function showToast(msg){
+  var t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); }, 3000);
+}
+</script>
+</body>
+</html>
