@@ -6,18 +6,18 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
   :root{
-    --bg:#f0f4f8; --panel:#ffffff; --ink:#1a2640; --muted:#6b7a99;
-    --line:#dde3ee; --accent:#1d4ed8; --accent-soft:#dbeafe;
-    --pos:#059669; --neg:#dc2626;
+    --bg:#f0f7f0; --panel:#ffffff; --ink:#162a19; --muted:#4d7a53;
+    --line:#c4dcc6; --accent:#15803d; --accent-soft:#dcfce7;
+    --pos:#15803d; --neg:#dc2626;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
        background:var(--bg);color:var(--ink);font-size:13px;-webkit-font-smoothing:antialiased}
   .app{display:flex;min-height:100vh}
-  .side{width:208px;background:var(--panel);border-right:1px solid var(--line);padding:18px 14px;flex:none;
+  .side{width:188px;background:var(--panel);border-right:1px solid var(--line);padding:18px 14px;flex:none;
         position:sticky;top:0;align-self:flex-start;height:100vh;display:flex;flex-direction:column;overflow-y:auto}
   .brand{display:flex;align-items:center;gap:9px;font-weight:700;font-size:15px;margin-bottom:22px;padding:4px}
-  .brand .dot{width:22px;height:22px;border-radius:7px;background:linear-gradient(135deg,#1d4ed8,#3b82f6)}
+  .brand .dot{width:22px;height:22px;border-radius:7px;background:linear-gradient(135deg,#15803d,#22c55e)}
   .nav a{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:9px;color:var(--muted);
          text-decoration:none;font-weight:600;margin-bottom:2px;cursor:pointer}
   .nav a.active,.nav a:hover{background:var(--accent-soft);color:var(--accent)}
@@ -26,7 +26,7 @@
            display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px}
   .main{flex:1;padding:20px 26px;max-width:1120px}
   .top{position:sticky;top:0;z-index:30;display:flex;flex-direction:column;align-items:stretch;gap:10px;
-       margin:0 -26px 6px;padding:16px 26px 12px;background:rgba(245,246,250,.92);
+       margin:0 -20px 6px;padding:12px 20px 10px;background:rgba(240,247,240,.95);
        backdrop-filter:saturate(1.1) blur(6px);border-bottom:1px solid var(--line);box-shadow:0 6px 14px -12px rgba(20,23,40,.22)}
   .top-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
   .top h1{font-size:17px;font-weight:700}
@@ -47,7 +47,7 @@
   .chip b{font-weight:700}
   .chip .x{cursor:pointer;font-weight:700;opacity:.7}
   .chip .x:hover{opacity:1}
-  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}
   .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:0 1px 3px rgba(20,23,40,.04)}
   .kpi .lbl{color:var(--muted);font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
   .kpi .val{font-size:25px;font-weight:700;margin:8px 0 10px;letter-spacing:-.5px}
@@ -72,12 +72,26 @@
   .lrow .amt{font-weight:700}
   .lrow .pct{color:var(--muted);width:34px;text-align:right}
   .acct-group-label{font-size:16px;font-weight:800;letter-spacing:-.01em;
-                    color:var(--accent);padding:18px 0 10px;border-bottom:2px solid var(--accent);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+                    color:var(--accent);padding:18px 0 10px;border-bottom:2px solid var(--accent);margin-bottom:14px;display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none}
+  .acct-group-label:hover{opacity:.85}
   .acct-group-label::before{content:'';display:block;width:4px;height:20px;background:var(--accent);border-radius:2px;flex-shrink:0}
+
+
   .acct-section{margin-bottom:18px}
+
+
+
+
+  .kpi-sm{padding:8px 12px !important}
+  .kpi-sm .lbl{font-size:9px}
+  .kpi-sm .val{font-size:15px !important;margin:3px 0 2px !important;letter-spacing:-.3px}
+  .group-balance-wrap{display:flex;justify-content:center;margin-bottom:8px}
+  .group-balance{text-align:center;min-width:180px;max-width:240px;width:100%}
+  .group-kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
   .acct-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-  .acct{border:1px solid transparent;border-radius:12px;padding:13px;cursor:pointer;background:var(--bg);transition:border-color .12s,box-shadow .12s;min-width:0;overflow:hidden}
-  .acct:hover{border-color:var(--accent);box-shadow:0 1px 4px rgba(108,92,231,.12)}
+  .acct-type-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);padding:8px 2px 6px;margin-top:10px;border-top:1px solid var(--line)}
+  .acct{border:1px solid transparent;border-radius:12px;padding:13px;cursor:pointer;background:var(--bg);transition:border-color .12s,box-shadow .12s,filter .12s;min-width:0;overflow:hidden}
+  .acct:hover{border-color:var(--accent);box-shadow:0 2px 8px rgba(20,23,40,.12);filter:brightness(.95)}
   .acct .nm{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .acct .meta{color:var(--muted);font-size:11px;margin:3px 0 9px}
   .acct .net{font-size:17px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -193,18 +207,52 @@
   .desc-revert{margin-left:5px;cursor:pointer;color:var(--muted);font-size:10px;vertical-align:middle;opacity:.7}
   .desc-revert:hover{color:var(--neg);opacity:1}
   .desc-input{width:100%;border:1.5px solid var(--accent);border-radius:5px;padding:2px 7px;font-size:12px;font-family:inherit;outline:none;background:#f0f7ff;color:var(--ink)}
+  .acct.bank-acct{background:#dbeafe !important;border-color:#93c5fd !important}
+  .acct.bank-acct:hover{border-color:#3b82f6 !important}
+
+  .sync-btn{display:flex;align-items:center;gap:6px;background:var(--accent);color:#fff;border:none;border-radius:9px;padding:7px 13px;font-size:12px;font-weight:700;cursor:pointer;transition:opacity .15s;white-space:nowrap}
+  .sync-btn:hover{opacity:.85}
+  .sync-btn:disabled{opacity:.5;cursor:not-allowed}
+  .sync-spin{display:inline-block;animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .edit-hint{font-size:10px;opacity:0.35;cursor:pointer;margin-left:4px;flex-shrink:0;user-select:none}
+  .edit-hint:hover{opacity:1;color:var(--accent)}
+  .cat-cell{cursor:pointer}
+  .cat-select{font-size:12px;border:1px solid var(--accent);border-radius:5px;padding:2px 5px;background:var(--panel);color:var(--ink);outline:none}
+  .cat-rename-inp{font-size:11px;border:1px solid var(--accent);border-radius:4px;padding:2px 6px;width:130px;background:var(--panel);color:var(--ink)}
+</style>
+<style>
+/* Top-nav layout override */
+.app{flex-direction:column !important}
+.side{width:100% !important;height:56px !important;flex-direction:row !important;
+      align-items:center !important;padding:0 20px !important;border-right:none !important;
+      border-bottom:1px solid var(--line) !important;position:sticky !important;
+      top:0 !important;z-index:100 !important;overflow:visible !important;
+      align-self:unset !important;flex:none !important}
+.brand{margin-bottom:0 !important;flex:none !important;padding:0 !important}
+.nav{flex-direction:row !important;flex:1 !important;margin-left:14px !important;gap:0 !important;flex-wrap:nowrap !important;overflow:visible !important}
+.nav a{padding:0 13px !important;height:56px !important;border-radius:0 !important;
+       margin-bottom:0 !important;white-space:nowrap !important;
+       border-bottom:2px solid transparent !important}
+.nav a.active,.nav a:hover{background:transparent !important;
+       color:var(--accent) !important;border-bottom-color:var(--accent) !important}
+.side .who{margin-top:0 !important;margin-left:auto !important;
+           padding:0 0 0 12px !important;border-top:none !important;
+           border-left:1px solid var(--line) !important}
+.main{padding:14px 20px !important;max-width:100% !important}
 </style>
 </head>
 <body>
 <div class="app">
   <aside class="side">
-    <div class="brand"><span class="dot"></span> Rob's Expense Tracker</div>
+    <div class="brand"><span class="dot"></span> Expense Dashboard</div>
     <nav class="nav" id="main-nav">
       <a class="active dash-nav" data-scroll="overview">📊 Overview</a>
       <a class="dash-nav" data-scroll="accounts">🏦 Accounts</a>
-      <a class="admin-only" href="/admin" style="margin-top:12px;border-top:1px solid var(--line);padding-top:12px">👥 User Management</a>
+    
+      <a class="admin-only" href="/admin">👥 User Management</a>
     </nav>
-    <div class="who"><span class="av" id="who-av">RS</span><div><div style="font-weight:700">Rob's Expense Tracker</div><div style="color:var(--muted);font-size:11px">SimpleFIN feed</div></div></div>
+    <div class="who"><span class="av" id="who-av">RS</span><div><div style="font-weight:700">Expense Dashboard</div><div style="color:var(--muted);font-size:11px">SimpleFIN feed</div></div></div>
   </aside>
 
   <main class="main">
@@ -247,6 +295,10 @@
             </div>
           </div>
         </div>
+        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;margin-left:auto">
+          <button class="sync-btn" id="sync-btn" onclick="doSync()">🔄 Sync</button>
+          <span id="sync-status" style="font-size:11px;color:var(--muted)"></span>
+        </div>
       </div>
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
         <div id="views-bar" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"></div>
@@ -259,10 +311,10 @@
 
       <section id="overview">
       <div class="kpis">
-        <div class="card kpi"><div class="lbl">Total Spent</div><div class="val" id="k-spent">$0</div><div class="spark" id="sp-spent"></div></div>
-        <div class="card kpi"><div class="lbl">Income</div><div class="val" id="k-income">$0</div><div class="spark" id="sp-income"></div></div>
-        <div class="card kpi"><div class="lbl">Net Cash Flow</div><div class="val" id="k-net">$0</div><div class="spark" id="sp-net"></div></div>
-        <div class="card kpi"><div class="lbl"># Transactions</div><div class="val" id="k-count">0</div><div class="spark" id="sp-count"></div></div>
+        <div class="card kpi"><div class="lbl">Total Spent</div><div class="val" id="k-spent">$0</div></div>
+        <div class="card kpi"><div class="lbl">Income</div><div class="val" id="k-income">$0</div></div>
+        <div class="card kpi"><div class="lbl">Net Cash Flow</div><div class="val" id="k-net">$0</div></div>
+        <div class="card kpi"><div class="lbl"># Transactions</div><div class="val" id="k-count">0</div></div>
       </div>
       <div class="card" style="margin-bottom:14px">
           <div class="panel-h"><div class="t">Income vs Expense — by month</div><div class="hint">click a bar to focus a month</div></div>
@@ -276,6 +328,10 @@
               <div class="donut-center"><small>Spent</small><b id="donut-total">$0</b></div>
             </div>
             <div class="legend" id="legend"></div>
+            <div style="display:flex;gap:6px;margin-top:10px;align-items:center">
+              <input id="new-cat-inp" type="text" placeholder="+ New category…" style="font-size:11px;border:1px solid var(--line);border-radius:5px;padding:4px 8px;background:var(--panel);color:var(--ink);outline:none;flex:1;min-width:0" onkeydown="if(event.key==='Enter')addCustomCategory()" />
+              <button onclick="addCustomCategory()" style="font-size:11px;background:var(--accent);color:#fff;border:none;border-radius:5px;padding:4px 9px;cursor:pointer;font-weight:700;white-space:nowrap">Add</button>
+            </div>
           </div>
         </div>
       </div>
@@ -297,7 +353,8 @@
             <input type="date" id="txn-date-start" title="Single date (exact) or start of range" style="border:1px solid var(--line);border-radius:8px;padding:5px 9px;font-size:12px;color:var(--ink);outline:none" onchange="drawTable()" />
             <span style="color:var(--muted);font-size:11px;flex-shrink:0">to</span>
             <input type="date" id="txn-date-end" title="End of date range (optional)" style="border:1px solid var(--line);border-radius:8px;padding:5px 9px;font-size:12px;color:var(--ink);outline:none" onchange="drawTable()" />
-            <input type="search" class="txn-search" id="txn-search" placeholder="Search description, payee, category…" oninput="drawTable()" style="width:240px" />
+            <select id="txn-search-field" onchange="drawTable()" style="border:1px solid var(--line);border-radius:8px;padding:5px 24px 5px 10px;font-size:12px;font-weight:600;color:var(--ink);outline:none;cursor:pointer"><option value="description">Description</option><option value="category">Category</option></select>
+            <input type="search" class="txn-search" id="txn-search" placeholder="Search…" oninput="drawTable()" style="width:200px" />
           </div>
           <div class="hint" id="ledger-count" style="flex-basis:100%;margin-top:-8px"></div>
         </div>
@@ -324,6 +381,8 @@ var ALL = [];
 var STATE = { period:'all', account:'all', category:null, page:1, group:'all', viewId:'all', viewAccounts:null, dateStart:null, dateEnd:null, selectedAccounts:[], acctGroup:'all' };
 var PAGE = 20;
 var lastSig = '';
+// Categories that represent internal transfers between own accounts — excluded from all views
+var EXCLUDED_CATEGORIES = ['Transfers Out','Credit Card Payments'];
 var CUSTOM_DESC = {};
 var CURRENT_USER = 'admin';
 var COLORS = ['#6c5ce7','#ef5b6b','#1bbf83','#f7a83b','#3b9bf7','#9b59d0','#19b3c9','#e0688f',
@@ -336,7 +395,8 @@ var ACCT_GROUPS = {
   'PayDiverse/Elm': ['3000','9613','1360','1378','3292'],
   'Celestra/Fortuna': ['1007','6576','6852'],
   'Frank Personal': ['8238','6469','9575','0928','5917','5150','8619','1539','4005','1009','9225','566','728','3988','3438','3439','9785','340','707','btc wallet'],
-  'Perseverance': ['8808']
+  'Perseverance': ['8808'],
+  'Brokerage & Savings': ['620','3030','1950','7447','0146']
 };
 function getAccountGroup(name){
   var n = (name||'').toLowerCase();
@@ -378,31 +438,60 @@ var LIVE_BALANCES = {
 };
 var ALL_KNOWN_ACCOUNTS = Object.keys(LIVE_BALANCES);
 
+// Display labels from Google Sheet mapping (system name → friendly label)
+var ACCT_LABELS = {
+  'Business Gold Card (1007)': 'Celestra Amex (1007)',
+  'FUL (6576)': 'Celestra Chase Checking (6576)',
+  'R. SENA (6852)': 'Celestra Chase Ink Visa (6852)',
+  'Business Gold Card (3000)': 'Elm Amex (3000)',
+  'Ink (9613)': 'Elm Chase Ink Visa (9613)',
+  'Elm Incoming (1360)': 'Elm Incoming Chase Checking (1360)',
+  'Elm Outgoing (1378)': 'Elm Outgoing Chase Savings (1378)',
+  'Perseverance Cap (8808)': 'Perseverance Cap (8808)',
+  'Individual ...620 (620)': 'Charles Schwab Individual (620)',
+  'Chase Sapphire Reserve (9995)': 'Chase Sapphire Reserve Visa (9995)',
+  'Ritz Carlton (8588)': 'Chase Visa Ritz-Carlton (8588)',
+  'Citi®/AAdvantage® Executive World Elite Mastercard®-2052 (2052)': 'Citi AAdvantage MasterCard (2052)',
+  'Individual Brokerage -3030 (3030)': 'E*Trade Individual Brokerage (3030)',
+  'Individual Brokerage -1950 (1950)': 'E*Trade Individual Brokerage (1950)',
+  'LLC S Corporation -7447 (7447)': 'E*Trade LLC S Corporation (7447)',
+  'Marriott Bonvoy Brilliant® American Express® Card (1003)': 'Marriott Amex (1003)',
+  'Moliterno Checking (5930)': 'Moliterno Chase Checking (5930)',
+  'Moliterno Savings (8787)': 'Moliterno Chase Savings (8787)',
+  'Business Platinum Card® (2006)': 'Moliterno Platinum Amex (2006)',
+  'Robert J Sena Check (7095)': 'RJS Chase Checking (7095)',
+  'RJS Savings (5137)': 'RJS Chase Savings (5137)',
+  'Self-Directed (0146)': 'Self-Directed Chase (0146)',
+  // Frank Personal accounts (second sheet)
+  'Atmos Rewards Ascent Visa Signature- 8619 (8619)': 'Atmos / Alaska Air Visa',
+  'Nordstrom retail credit card - 1539 (1539)': 'Nordstrom Card',
+  'Business Platinum Card® (4005)': 'Demilt AmEx',
+  'Marriott Bonvoy Brilliant® American Express® Card (1009)': 'Marriott AmEx',
+  'Savings Account (9225)': 'Ally Savings',
+  'Demilt Capital Management LLC Francis Sena Non Prototype NFS  PPS Custom (566))': 'Commonwealth 401k',
+  'Demilt Capital Management LLC Limited Liability Company NFS  PPS Custom (728))': 'Commonwealth Brokerage',
+  'Individual 3.30% APY (3988)': 'Wealthfront',
+  'DEMILT PARAMETRIC (3438)': 'Merrill Parametric',
+  'DEMILT WCMA (3439)': 'Merrill WCMA',
+  'BTC Wallet (bde7ed9b-34c1-5047-9756-dba7b0d43bb5)': 'Nexo BTC Wallet',
+  'Citi®/AAdvantage® Executive World Elite Mastercard®-9785 (9785)': 'AA Citi Visa',
+  'Individual ...340 (340)': 'Schwab Brokerage',
+  'Investor Checking ...707 (707)': 'Schwab Checking',
+  'CREDIT CARD (8238)': 'Sapphire Preferred',
+  'MANAGED BROKERAGE (6469)': 'Chase Brokerage',
+  'Chase Freedom Unlimited (9575)': 'Freedom Unlimited',
+  'Personal Savings (0928)': 'Chase Savings',
+  'Personal Checking (5917)': 'Chase Checking',
+  'Amazon CC (5150)': 'Amazon Visa',
+  'Account': 'Chase Freedom (Account)',
+};
+
 // Detect user view vs admin view
 var _viewToken = new URLSearchParams(window.location.search).get('token');
 if (_viewToken) document.documentElement.classList.add('user-view');
 
-window.onload = function(){
-  var startDate = new Date();
-  startDate.setDate(startDate.getDate() - 365); // fetch 1 year of history
-  var sd = startDate.toISOString().split('T')[0];
-  var url = '/api/data?start_date=' + sd + (_viewToken ? '&token=' + encodeURIComponent(_viewToken) : '');
-  fetch(url)
-    .then(function(r){ if(!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-    .then(function(res){
-      if(res.viewUser){
-        var n = res.viewUser.name;
-        var brand = document.querySelector('.brand');
-        if(brand) brand.innerHTML = '<span class="dot"></span> ' + esc(n) + " Dashboard";
-        var av = document.getElementById('who-av');
-        if(av) av.textContent = n.split(' ').map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2);
-        var whoName = document.querySelector('.who div div');
-        if(whoName) whoName.textContent = n;
-      }
-      onData(res);
-    })
-    .catch(function(e){ onErr(e); });
-};
+function loadData(){var startDate=new Date();startDate.setDate(startDate.getDate()-365);var sd=startDate.toISOString().split('T')[0];var url='/api/data?start_date='+sd+(_viewToken?'&token='+encodeURIComponent(_viewToken):'');return fetch(url).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}).then(function(res){if(res.viewUser){var n=res.viewUser.name;var brand=document.querySelector('.brand');if(brand)brand.innerHTML='<span class="dot"></span> '+esc(n)+' Dashboard';var av=document.getElementById('who-av');if(av)av.textContent=n.split(' ').map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2);var whoName=document.querySelector('.who div div');if(whoName)whoName.textContent=n;}onData(res);}).catch(function(e){onErr(e);});}
+window.onload=function(){loadCustomCategories();var saved=localStorage.getItem('lastSync');if(saved){var s=document.getElementById('sync-status');if(s){s.textContent=saved;s.style.color='var(--pos)';}}loadData();};
 function onErr(e){ document.getElementById('loading').textContent = 'Error: ' + e.message; }
 
 function onData(res){
@@ -441,13 +530,21 @@ function onData(res){
   render();
 }
 
+
+var CUSTOM_CATS_KEY='customCategories';
+var ALL_CATEGORIES=['Bank Fees & Interest','Business Income','Credit Card Payments','Dining','Gas & Fuel','Groceries','Healthcare','Insurance','Investment','Marketing & Advertising','Office & Technology','Online Shopping','Other Income','Payroll & Income','Professional Services','Rent & Mortgage','Transfers Out','Travel','Uncategorized/Other'];
+function loadCustomCategories(){try{var s=JSON.parse(localStorage.getItem(CUSTOM_CATS_KEY)||'[]');s.forEach(function(c){if(c&&ALL_CATEGORIES.indexOf(c)===-1)ALL_CATEGORIES.push(c);});ALL_CATEGORIES.sort();}catch(e){}}
+function addCustomCategory(){var inp=document.getElementById('new-cat-inp');if(!inp)return;var name=inp.value.trim();if(!name)return;if(ALL_CATEGORIES.indexOf(name)!==-1){inp.value='';inp.placeholder='"'+name+'" already exists';setTimeout(function(){inp.placeholder='+ New category…';},2000);return;}ALL_CATEGORIES.push(name);ALL_CATEGORIES.sort();try{var s=JSON.parse(localStorage.getItem(CUSTOM_CATS_KEY)||'[]');if(s.indexOf(name)===-1)s.push(name);localStorage.setItem(CUSTOM_CATS_KEY,JSON.stringify(s));}catch(e){}inp.value='';inp.placeholder='✓ "'+name+'" added to dropdown';setTimeout(function(){inp.placeholder='+ New category…';},2500);}
+function editCategory(ev,td){ev.stopPropagation();if(td.querySelector('select'))return;var cur=td.getAttribute('data-cat')||'';var txnId=td.getAttribute('data-id')||'';var sel=document.createElement('select');sel.className='cat-select';ALL_CATEGORIES.forEach(function(c){var opt=document.createElement('option');opt.value=c;opt.textContent=c;if(c===cur)opt.selected=true;sel.appendChild(opt);});td.innerHTML='';td.appendChild(sel);sel.onclick=function(e){e.stopPropagation();};sel.onchange=function(){saveCategory(sel,txnId,td);};sel.onblur=function(){saveCategory(sel,txnId,td);};sel.focus();}
+async function saveCategory(sel,txnId,td){var newCat=sel.value;if(!td)td=sel.parentElement;if(txnId){try{await fetch('/api/update',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'update_category',id:txnId,category:newCat})});var row=ALL.find(function(r){return r.id===txnId;});if(row)row.category=newCat;}catch(e){}}td.setAttribute('data-cat',newCat);td.innerHTML='<span class="tag">'+esc(newCat)+'</span><span class="edit-hint">✏</span>';td.onclick=function(ev){editCategory(ev,td);};render();}
+function editLegendCat(pencilEl,catName){var lrow=pencilEl.parentElement;if(lrow.querySelector('input'))return;var nm=lrow.querySelector('.nm');if(!nm)return;var inp=document.createElement('input');inp.type='text';inp.value=catName;inp.className='cat-rename-inp';inp.onclick=function(e){e.stopPropagation();};inp.onkeydown=function(e){if(e.key==='Enter'){e.preventDefault();doRenameCat(inp.value.trim(),catName);}if(e.key==='Escape'){render();}};inp.onblur=function(){doRenameCat(inp.value.trim(),catName);};nm.replaceWith(inp);inp.select();}
+async function doRenameCat(newCat,oldCat){if(!newCat||newCat===oldCat){render();return;}try{await fetch('/api/update',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'rename_category',from_category:oldCat,to_category:newCat})});ALL.forEach(function(r){if(r.category===oldCat)r.category=newCat;});}catch(e){}render();}
+async function doSync(){var btn=document.getElementById('sync-btn'),status=document.getElementById('sync-status');btn.disabled=true;btn.innerHTML='<span class="sync-spin">🔄</span> Syncing…';status.textContent='';try{var qs=STATE&&STATE.userToken?'?token='+encodeURIComponent(STATE.userToken):'';var r=await fetch('/api/sync'+qs);var j=await r.json();if(j.ok){var d=new Date(j.syncedAt||Date.now());var label='✓ Synced '+d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})+' at '+d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});status.textContent=label;status.style.color='var(--pos)';localStorage.setItem('lastSync',label);await loadData();}else{status.textContent='✗ '+(j.error||'Sync failed');status.style.color='var(--neg)';}}catch(e){status.textContent='✗ '+e.message;status.style.color='var(--neg)';}finally{btn.disabled=false;btn.innerHTML='🔄 Sync';}}
 function setView(v){
-  var showDash = (v === 'overview');
-  ['overview','ledger'].forEach(function(id){
-    var el=document.getElementById(id); if(el) el.style.display = showDash ? '' : 'none';
-  });
-  var acct=document.getElementById('accounts'); if(acct) acct.style.display = (v==='accounts') ? '' : 'none';
-  if(showDash){ setTimeout(function(){ if(barChart) barChart.resize(); if(donutChart) donutChart.resize(); },0); }
+  var showDash=(v==='overview');
+  ['overview','ledger'].forEach(function(id){var el=document.getElementById(id);if(el)el.style.display=showDash?'':'none';});
+  var acct=document.getElementById('accounts');if(acct)acct.style.display=(v==='accounts')?'':' none';
+  if(showDash){setTimeout(function(){if(barChart)barChart.resize();if(donutChart)donutChart.resize();},0);}
 }
 function monthLabel(m){ var d=new Date(m+'-01T00:00:00'); return d.toLocaleDateString('en-US',{month:'short',year:'numeric'}); }
 function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
@@ -455,9 +552,17 @@ function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').rep
 function baseFiltered(){
   return ALL.filter(function(r){
     if(STATE.viewAccounts && STATE.viewAccounts.indexOf(r.account)===-1) return false;
+    if(STATE.acctGroup && STATE.acctGroup !== 'all'){
+      var rGrp = getAccountGroup(r.account);
+      var allowed = STATE.acctGroup === "Rob's Personal"
+        ? (rGrp === "Rob's Personal" || rGrp === "Brokerage & Savings")
+        : rGrp === STATE.acctGroup;
+      if(!allowed) return false;
+    }
     if(STATE.dateStart && r.date < STATE.dateStart) return false;
     if(STATE.dateEnd && r.date > STATE.dateEnd) return false;
     if(STATE.selectedAccounts.length > 0 && STATE.selectedAccounts.indexOf(r.account)===-1) return false;
+    if(EXCLUDED_CATEGORIES.indexOf(r.category) !== -1) return false;
     return true;
   });
 }
@@ -477,7 +582,9 @@ function render(){
   var income = kpiRows.filter(function(r){return r.amount>0;}).reduce(function(s,r){return s+r.amount;},0);
   var net = income - kpiSpent;
   document.getElementById('k-spent').textContent  = usd(kpiSpent);
+  document.getElementById('k-spent').style.color  = 'var(--neg)';
   document.getElementById('k-income').textContent = usd(income);
+  document.getElementById('k-income').style.color = 'var(--pos)';
   document.getElementById('k-net').textContent    = (net>=0?'+':'') + usd(net);
   document.getElementById('k-net').style.color    = net>=0 ? 'var(--pos)' : 'var(--neg)';
   document.getElementById('k-count').textContent  = kpiRows.length.toLocaleString();
@@ -489,10 +596,6 @@ function render(){
   });
   var byAcctCat = STATE.category ? byAcct.filter(function(r){return r.category===STATE.category;}) : byAcct;
   var ms = Array.from(new Set(byAcct.map(function(r){return r.month;}))).sort();
-  spark('sp-spent',  ms.map(function(m){return byAcctCat.filter(function(r){return r.month===m&&r.amount<0;}).reduce(function(s,r){return s-r.amount;},0);}), ms);
-  spark('sp-income', ms.map(function(m){return byAcctCat.filter(function(r){return r.month===m&&r.amount>0;}).reduce(function(s,r){return s+r.amount;},0);}), ms);
-  spark('sp-net',    ms.map(function(m){return byAcctCat.filter(function(r){return r.month===m;}).reduce(function(s,r){return s+r.amount;},0);}), ms);
-  spark('sp-count',  ms.map(function(m){return byAcctCat.filter(function(r){return r.month===m;}).length;}), ms);
 
   drawBar(byAcct);
   drawDonut(rows, spent);
@@ -566,25 +669,85 @@ function drawDonut(rows, spent){
 }
 function toggleCat(c){ STATE.category=(STATE.category===c?null:c); render(); }
 
+function getAccountType(name) {
+  var n = name || '';
+  // Credit card: name contains common card keywords
+  if (/card|mastercard|sapphire|bonvoy|aadvantage|ritz[- ]carlton/i.test(n)) return 'credit';
+  // Known credit cards by last 4: Ink (9613), R. SENA (6852), Freedom Unlimited (9575), Amazon CC (5150), Atmos Visa (8619)
+  if (/\(9613\)|\(6852\)|\(9575\)|\(5150\)|\(8619\)/.test(n)) return 'credit';
+  // Brokerage & Savings accounts by last 4: Schwab (620), ETrade (3030,1950,7447), Self-Directed (0146)
+  if (/\(620\)|\(3030\)|\(1950\)|\(7447\)|\(0146\)/.test(n)) return 'brokerage';
+  return 'bank';
+}
+
 function drawAccounts(){
   var periodRows = baseFiltered();
   var container = document.getElementById('acct-grid');
   var acctGroupFilter = STATE.acctGroup || 'all';
+
+  function renderTypeSplit(accts, rows) {
+    var banks      = accts.filter(function(a){ return getAccountType(a)==='bank'; });
+    var credits    = accts.filter(function(a){ return getAccountType(a)==='credit'; });
+    var brokerages = accts.filter(function(a){ return getAccountType(a)==='brokerage'; });
+    var multiType  = (banks.length>0) + (credits.length>0) + (brokerages.length>0) > 1;
+    var html = '';
+    if(banks.length){
+      if(multiType) html += '<div class="acct-type-label">Bank Accounts</div>';
+      html += '<div class="acct-grid">' + banks.map(function(a){ return renderAcctCard(a, rows); }).join('') + '</div>';
+    }
+    if(credits.length){
+      html += '<div class="acct-type-label">Credit Cards</div>';
+      html += '<div class="acct-grid">' + credits.map(function(a){ return renderAcctCard(a, rows); }).join('') + '</div>';
+    }
+    if(brokerages.length){
+      html += '<div class="acct-type-label">Brokerage &amp; Savings</div>';
+      html += '<div class="acct-grid">' + brokerages.map(function(a){ return renderAcctCard(a, rows); }).join('') + '</div>';
+    }
+    return html;
+  }
+
+  // Shared KPI summary: 3 boxes (Total Income / Total Expenses / Net) with spark bars
+  function buildGroupKpiHtml(rows, accts) {
+    var income   = rows.filter(function(r){return r.amount>0;}).reduce(function(s,r){return s+r.amount;},0);
+    var expenses = rows.filter(function(r){return r.amount<0;}).reduce(function(s,r){return s+(-r.amount);},0);
+    var net = income - expenses;
+    // Running balance: sum of current LIVE_BALANCES for all accounts in this group
+    var runBal = (accts||[]).reduce(function(s,a){ return s+((LIVE_BALANCES[a]&&LIVE_BALANCES[a].balance)||0); },0);
+    return '<div class="group-balance-wrap">'+
+        '<div class="card kpi kpi-sm group-balance">'+
+          '<div class="lbl">Running Balance</div>'+
+          '<div class="val" style="color:'+(runBal>=0?'var(--accent)':'var(--neg)')+'">'+usd(runBal)+'</div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="group-kpi-grid">'+
+        '<div class="card kpi kpi-sm"><div class="lbl">Total Income</div><div class="val" style="color:var(--pos)">'+usd(income)+'</div></div>'+
+        '<div class="card kpi kpi-sm"><div class="lbl">Total Expenses</div><div class="val" style="color:var(--neg)">'+usd(expenses)+'</div></div>'+
+        '<div class="card kpi kpi-sm"><div class="lbl">Net</div><div class="val" style="color:'+(net>=0?'var(--pos)':'var(--neg)')+'">'+(net>=0?'+':'')+usd(net)+'</div></div>'+
+      '</div>';
+  }
+
   if(acctGroupFilter !== 'all'){
-    var groupRows = periodRows.filter(function(r){ return getAccountGroup(r.account)===acctGroupFilter; });
-    var knownInGrp = ALL_KNOWN_ACCOUNTS.filter(function(a){ return getAccountGroup(a)===acctGroupFilter; });
+    if(_viewToken && acctGroupFilter === 'Perseverance') { container.innerHTML = ''; return; }
+    var grpsToShow = acctGroupFilter === "Rob's Personal"
+      ? ["Rob's Personal", "Brokerage & Savings"] : [acctGroupFilter];
+    var groupRows = periodRows.filter(function(r){ return grpsToShow.indexOf(getAccountGroup(r.account)) !== -1; });
+    var knownInGrp = ALL_KNOWN_ACCOUNTS.filter(function(a){ return grpsToShow.indexOf(getAccountGroup(a)) !== -1; });
     var accts = Array.from(new Set(groupRows.map(function(r){return r.account;}).concat(knownInGrp))).sort();
-    container.innerHTML = '<div class="acct-grid">' + accts.map(function(a){ return renderAcctCard(a, groupRows); }).join('') + '</div>';
+    container.innerHTML = buildGroupKpiHtml(groupRows, accts) + renderTypeSplit(accts, groupRows);
   } else {
-    var groupOrder = ["Rob's Personal",'Perseverance','PayDiverse/Elm','Celestra/Fortuna','Frank Personal'];
+    var groupOrder = _viewToken
+      ? ["Rob's Personal",'PayDiverse/Elm','Celestra/Fortuna','Frank Personal']
+      : ["Rob's Personal",'Perseverance','PayDiverse/Elm','Celestra/Fortuna','Frank Personal'];
     container.innerHTML = groupOrder.map(function(grp){
-      var grpRows = periodRows.filter(function(r){ return getAccountGroup(r.account)===grp; });
-      var knownInGrp2 = ALL_KNOWN_ACCOUNTS.filter(function(a){ return getAccountGroup(a)===grp; });
+      var grpMatch = function(g){ return g===grp || (grp==="Rob's Personal" && g==="Brokerage & Savings"); };
+      var grpRows = periodRows.filter(function(r){ return grpMatch(getAccountGroup(r.account)); });
+      var knownInGrp2 = ALL_KNOWN_ACCOUNTS.filter(function(a){ return grpMatch(getAccountGroup(a)); });
       var accts = Array.from(new Set(grpRows.map(function(r){return r.account;}).concat(knownInGrp2))).sort();
       if(!accts.length) return '';
       return '<div class="acct-section">' +
         '<div class="acct-group-label">'+esc(grp)+'</div>' +
-        '<div class="acct-grid">' + accts.map(function(a){ return renderAcctCard(a, grpRows); }).join('') + '</div>' +
+        buildGroupKpiHtml(grpRows, accts) +
+        renderTypeSplit(accts, grpRows) +
         '</div>';
     }).join('');
   }
@@ -593,13 +756,16 @@ function drawAccounts(){
 function renderAcctCard(a, rows){
   var ar  = rows.filter(function(r){return r.account===a;});
   var net = ar.reduce(function(s,r){return s+r.amount;},0);
-  var on  = STATE.account===a ? 'style="border-color:var(--accent)"' : '';
+  var isCc = getAccountType(a) === 'credit';
+  var bgColor = isCc ? '#fee2e2' : '#dcfce7';
+  var borderColor = STATE.account===a ? 'var(--accent)' : 'transparent';
+  var on  = 'style="background:'+bgColor+';border-color:'+borderColor+'"';
   var lb  = LIVE_BALANCES[a];
   var newBadge = (lb && lb.isNew) ? '<span class="badge-new">NEW</span>' : '';
   var balHtml  = lb ? '<div class="bal" style="color:'+(lb.balance>=0?'var(--pos)':'var(--neg)')+'">'+usd(lb.balance)+'<span class="cur-lbl">balance</span></div>' : '';
   var netHtml  = ar.length ? '<div class="txn-net">'+(net>=0?'+':'')+usd(net)+' net · '+ar.length+' txns</div>' : '<div class="txn-net">no transactions</div>';
-  return '<div class="acct" '+on+' onclick="pickAcct(\''+a.replace(/'/g,"\\'")+'\')">' +
-    '<div class="nm">'+esc(a)+newBadge+'</div>' +
+  return '<div class="acct'+(getAccountType(a)==='bank'?' bank-acct':'')+'" '+on+' onclick="pickAcct(\''+a.replace(/'/g,"\\'")+'\')">' +
+    '<div class="nm" title="'+esc(a)+'">'+esc(ACCT_LABELS[a]||a)+newBadge+'</div>' +
     balHtml + netHtml + '</div>';
 }
 
@@ -619,8 +785,13 @@ function drawTable(){
   } else if(txnDateEnd){
     rows = rows.filter(function(r){ return r.date === txnDateEnd; });
   }
+  var searchField = (document.getElementById('txn-search-field') ? document.getElementById('txn-search-field').value : 'description');
   if(searchTerm) rows = rows.filter(function(r){
-    return (r.description||'').toLowerCase().indexOf(searchTerm)!==-1;
+    if(searchField==='category') return (r.category||'').toLowerCase().indexOf(searchTerm)!==-1;
+    var origDesc = r.description || r.payee || '';
+    var txnKey = r.date+'||'+r.amount.toFixed(2)+'||'+origDesc.replace(/\|/g,'_').slice(0,40);
+    var displayDesc = CUSTOM_DESC[txnKey] || origDesc;
+    return displayDesc.toLowerCase().indexOf(searchTerm)!==-1;
   });
   rows = rows.slice().sort(function(a,b){return a.date<b.date?1:-1;});
   var sig = (STATE.dateStart||'')+'|'+(STATE.dateEnd||'')+'|'+STATE.selectedAccounts.join(',')+'|'+STATE.category+'|'+STATE.group+'|'+searchTerm;
@@ -653,8 +824,9 @@ function drawTable(){
     var displayDesc = customDesc || origDesc;
     var isEdited = !!customDesc;
     var descTd = '<td class="desc-cell'+(isEdited?' desc-edited':'')+'" data-key="'+esc(txnKey)+'" data-orig="'+esc(origDesc)+'" title="'+(isEdited?'Original: '+esc(origDesc):esc(origDesc))+'" onclick="editDesc(this)">'+esc(displayDesc)+(isEdited?'<span class="desc-revert" onclick="revertDesc(event,this)" title="Revert to original">↩</span>':'')+'</td>';
-    return '<tr><td>'+r.date+'</td><td>'+esc(r.account)+'</td>'+descTd+
-      '<td><span class="tag">'+esc(r.category)+'</span></td>'+
+    descTd = descTd.slice(0,-5)+'<span class="edit-hint">✏</span></td>';
+    return '<tr><td>'+r.date+'</td><td title="'+esc(r.account)+'">'+esc(ACCT_LABELS[r.account]||r.account)+'</td>'+descTd+
+      '<td class="cat-cell" data-id="'+esc(r.id||'')+'" data-cat="'+esc(r.category)+'" onclick="editCategory(event,this)"><span class="tag">'+esc(r.category)+'</span><span class="edit-hint">✏</span></td>'+
       '<td class="right '+(r.amount<0?'amt-neg':'amt-pos')+'">'+usd(r.amount)+'</td></tr>';
   }).join('') || '<tr><td colspan="5" style="text-align:center;padding:32px;color:var(--muted);font-style:italic">'+(searchTerm||txnDateStart||txnDateEnd ? 'No matching transactions. Try a different keyword or date.' : 'No transactions in this period.')+'</td></tr>';
   drawPager(total, pages, start, pageRows.length);
@@ -735,6 +907,8 @@ function resetAllFilters(){
   // Reset txn search
   var tsearch = document.getElementById('txn-search');
   if(tsearch) tsearch.value = '';
+  var tsfield = document.getElementById('txn-search-field');
+  if(tsfield) tsfield.value = 'description';
   // Reset multi-select accounts
   updateMsBtn();
   populateMsList();
@@ -1024,7 +1198,10 @@ function renderAcctGroupFilter(){
   var el = document.getElementById('acct-group-filter');
   if(!el) return;
   var current = STATE.acctGroup || 'all';
-  el.innerHTML = ACCT_GROUPS_ORDER.map(function(g){
+  var orders = _viewToken
+    ? ['All',"Rob's Personal",'Frank Personal','PayDiverse/Elm','Celestra/Fortuna']
+    : ACCT_GROUPS_ORDER;
+  el.innerHTML = orders.map(function(g){
     var val = g === 'All' ? 'all' : g;
     var active = current === val;
     return '<button style="border:1px solid '+(active?'var(--accent)':'var(--line)')+';background:'+(active?'var(--accent)':'#fff')+';color:'+(active?'#fff':'var(--muted)')+';border-radius:16px;padding:4px 11px;font-size:11.5px;font-weight:600;cursor:pointer" data-grp="'+val+'" onclick="setAcctGroup(this.dataset.grp)">'+g+'</button>';
@@ -1033,9 +1210,8 @@ function renderAcctGroupFilter(){
 
 function setAcctGroup(g){
   STATE.acctGroup = g;
-  renderAcctGroupFilter();
-  drawAccounts();
-  drawChips();
+  STATE.page = 1;
+  render();
 }
 
 // ── Transaction line chart + total box ────────────────────────────────────────
@@ -1051,7 +1227,7 @@ function drawLedgerChart(rows){
   var totalIncome = rows.filter(function(r){return r.amount>0;}).reduce(function(s,r){return s+r.amount;},0);
   var net = totalIncome - totalSpent;
   summaryEl.innerHTML = [
-    ['Total Transactions', rows.length, '#1d4ed8', '#dbeafe'],
+    ['Total Transactions', rows.length, '#15803d', '#dcfce7'],
     ['Total Spent', usd(totalSpent), '#dc2626', '#fee2e2'],
     ['Total Income', usd(totalIncome), '#059669', '#d1fae5'],
     ['Net', (net>=0?'+':'')+usd(net), net>=0?'#059669':'#dc2626', net>=0?'#d1fae5':'#fee2e2'],
@@ -1082,7 +1258,7 @@ function drawLedgerChart(rows){
       labels: months.map(monthLabel),
       datasets: [
         { label:'Spent', data:spentByMonth, borderColor:'#dc2626', backgroundColor:'rgba(220,38,38,.08)', tension:.4, fill:true, pointRadius:4 },
-        { label:'Income', data:incByMonth, borderColor:'#1d4ed8', backgroundColor:'rgba(29,78,216,.08)', tension:.4, fill:true, pointRadius:4 },
+        { label:'Income', data:incByMonth, borderColor:'#15803d', backgroundColor:'rgba(29,78,216,.08)', tension:.4, fill:true, pointRadius:4 },
       ]
     },
     options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'top', labels:{font:{size:11}} } }, scales:{ y:{ beginAtZero:true, ticks:{ callback:function(v){return '$'+(v/1000).toFixed(0)+'k';} } } } }
@@ -1120,5 +1296,5 @@ function postOverride(txnKey,customDesc){
   }).catch(function(e){console.error('Override save failed:',e);});
 }
 </script>
-</body>
+<script>(function(){var _orig=window.drawDonut;window.drawDonut=function(rows,spent){_orig.call(this,rows,spent);var leg=document.getElementById('legend');if(!leg)return;leg.querySelectorAll('.lrow').forEach(function(row){if(row.querySelector('.edit-hint'))return;var nm=row.querySelector('.nm');if(!nm)return;var catName=nm.textContent;var span=document.createElement('span');span.className='edit-hint';span.title='Rename category';span.textContent='✏';span.addEventListener('click',function(e){e.stopPropagation();editLegendCat(span,catName);});row.appendChild(span);});};})();</script></body>
 </html>
