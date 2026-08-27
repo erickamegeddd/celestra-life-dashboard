@@ -66,7 +66,7 @@ select.flt{appearance:none;border:1px solid var(--line);background:#fff;border-r
 .acct .nm{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .acct .meta{color:var(--muted);font-size:11px;margin:2px 0 7px}
 .acct .bal{font-size:16px;font-weight:700}
-.acct-group-label{font-size:13px;font-weight:700;color:#fff;background:#14532d;padding:9px 16px;border-radius:8px;margin:20px 0 12px;letter-spacing:.03em;box-shadow:0 2px 6px rgba(20,83,45,.25)}
+.acct-group-label{font-size:15px;font-weight:800;color:var(--accent);padding:14px 0 8px;border-bottom:2px solid var(--accent);margin-bottom:12px}
 .acct-type-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding:8px 2px 5px;margin-top:8px;border-top:1px solid var(--line)}
 .ledger-controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
 input[type=date]{border:1px solid var(--line);border-radius:7px;padding:5px 8px;font-size:12px;color:var(--ink);outline:none;background:var(--panel)}
@@ -212,7 +212,7 @@ var ACCT_LABELS={
 "Demilt Capital Management LLC Limited Liability Company NFS  PPS Custom (728))":"Commonwealth Brokerage"
 };
 function lbl(nm){return ACCT_LABELS[nm]||nm;}
-var ALL=[],LIVE_BAL={},STATE={period:90,account:'',catFilter:null,page:1};
+var ALL=[],LIVE_BAL={},STATE={period:180,account:'',catFilter:null,page:1};
 var PAGE=50,barInst=null,donutInst=null;
 var CUSTOM_CATS=JSON.parse(localStorage.getItem('expCats')||'[]');
 var ALL_CATS=['Bank Fees & Interest','Business Income','Credit Card Payments','Dining','Gas & Fuel','Groceries','Healthcare','Insurance','Investment','Marketing & Advertising','Office & Technology','Online Shopping','Other Income','Payroll & Income','Professional Services','Rent & Mortgage','Transfers Out','Travel','Uncategorized/Other'].concat(CUSTOM_CATS);
@@ -248,7 +248,8 @@ function renderBar(rows){
   var months=Object.keys(map).sort().slice(-12);
   var ctx=document.getElementById('barChart');
   if(barInst)barInst.destroy();
-  barInst=new Chart(ctx,{type:'bar',data:{labels:months,datasets:[
+  var dispMonths=months.map(function(m){var d=new Date(m+'-02');return d.toLocaleDateString('en-US',{month:'short',year:'numeric'});});
+  barInst=new Chart(ctx,{type:'bar',data:{labels:dispMonths,datasets:[
     {label:'Income',data:months.map(function(m){return map[m].inc;}),backgroundColor:'#22c55e60',borderColor:'#15803d',borderWidth:1.5,borderRadius:3},
     {label:'Expense',data:months.map(function(m){return map[m].exp;}),backgroundColor:'#f87171a0',borderColor:'#dc2626',borderWidth:1.5,borderRadius:3}
   ]},options:{maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}}},scales:{x:{ticks:{font:{size:10}}},y:{ticks:{callback:function(v){return'$'+(v/1000).toFixed(0)+'k';}}}}}});
