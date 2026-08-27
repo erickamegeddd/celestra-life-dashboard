@@ -66,7 +66,7 @@ select.flt{appearance:none;border:1px solid var(--line);background:#fff;border-r
 .acct .nm{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:11.5px}
 .acct .meta{color:var(--muted);font-size:10px;margin:1px 0 4px}
 .acct .bal{font-size:13px;font-weight:700}
-.acct-group-label{font-size:13px;font-weight:700;color:#fff;background:#14532d;padding:9px 16px;border-radius:8px;margin:20px 0 12px;letter-spacing:.03em;box-shadow:0 2px 6px rgba(20,83,45,.25)}
+.acct-group-label{font-size:13px;font-weight:700;color:#fff;background:#14532d;padding:9px 16px;border-radius:8px;margin:20px 0 12px;letter-spacing:.03em;box-shadow:0 2px 6px rgba(20,83,45,.25);cursor:pointer;display:flex;justify-content:space-between;align-items:center;user-select:none}
 .acct-type-label{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#14532d;padding:10px 2px 6px;margin-top:10px;border-top:2px solid var(--line)}
 .ledger-controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
 input[type=date]{border:1px solid var(--line);border-radius:7px;padding:5px 8px;font-size:12px;color:var(--ink);outline:none;background:var(--panel)}
@@ -345,9 +345,9 @@ function getAccountType(nm){
   return'bank';
 }
 function renderTypeSplit(accts){
-  var banks=accts.filter(function(a){return getAccountType(a)==='bank';});
-  var credits=accts.filter(function(a){return getAccountType(a)==='credit';});
-  var brokers=accts.filter(function(a){return getAccountType(a)==='brokerage';});
+  var banks=accts.filter(function(a){return getAccountType(a)==='bank';}).sort(function(a,b){return lbl(a).localeCompare(lbl(b));});
+  var credits=accts.filter(function(a){return getAccountType(a)==='credit';}).sort(function(a,b){return lbl(a).localeCompare(lbl(b));});
+  var brokers=accts.filter(function(a){return getAccountType(a)==='brokerage';}).sort(function(a,b){return lbl(a).localeCompare(lbl(b));});
   function card(nm){
     var bal=LIVE_BAL[nm]?LIVE_BAL[nm].balance:null;
     var rows=ALL.filter(function(r){return r.account===nm;});
@@ -372,8 +372,8 @@ function renderAccounts(){
   var groups={"Rob's Personal":[],'Perseverance':[],'PayDiverse/Elm':[],'Celestra/Fortuna':[],'Frank Personal':[]};
   var names=Object.keys(LIVE_BAL);if(!names.length)names=Object.keys((function(){var m={};ALL.forEach(function(r){m[r.account]=1;});return m;})());
   names.forEach(function(nm){var g=getGroup(nm);if(!groups[g])groups[g]=[];groups[g].push(nm);});
-  var html='';
-  Object.entries(groups).forEach(function(e){var grp=e[0],accts=e[1];if(!accts.length)return;html+='<div class="acct-group-label">'+esc(grp)+'</div>'+renderTypeSplit(accts);});
+  var html='',gi=0;
+  Object.entries(groups).forEach(function(e){var grp=e[0],accts=e[1];if(!accts.length)return;var gid='acct-g-'+(gi++);html+='<div class="acct-group-label" onclick="toggleAG(this)" data-gid="'+gid+'">'+esc(grp)+'<span>&#9654;</span></div><div id="'+gid+'" style="display:none">'+renderTypeSplit(accts)+'</div>';});
   content.innerHTML=html||'<div style="color:var(--muted);text-align:center;padding:32px">Sync to load account data.</div>';
   var sel=document.getElementById('acct-filter');var cur=sel.value;
   sel.innerHTML='<option value="">All accounts</option>';
@@ -508,6 +508,7 @@ function editCat(ev,td){
   };
   sel.focus();
 }
+function toggleAG(el){var gid=el.getAttribute('data-gid');var d=document.getElementById(gid);var ch=el.querySelector('span');if(!d)return;var open=d.style.display!=='none';d.style.display=open?'none':'block';if(ch)ch.textContent=open?'▶':'▼';}
 function toggleCat(c){STATE.catFilter=(STATE.catFilter===c?null:c);render();}
 function editLegendCat(el,oldCat){
   var lrow=el.parentElement;if(lrow.querySelector('input'))return;
