@@ -93,8 +93,9 @@ td{padding:7px 9px;border-bottom:1px solid var(--line);white-space:nowrap;overfl
 .date-range-row .clear-btn{font-size:11px;color:var(--neg);background:none;border:none;cursor:pointer;font-weight:700;padding:2px 6px}
 .tgl.range-active{background:var(--accent);color:#fff !important;box-shadow:0 1px 3px rgba(0,0,0,.2)}
 </style>
-<!-- built:2026-08-27-03h --></head>
+<!-- built:2026-08-27-03h --><style>.th-filt{cursor:pointer;user-select:none}.th-filt:hover{color:var(--accent)}#cfd{display:none;position:fixed;background:#fff;border:1px solid var(--line);border-radius:6px;box-shadow:0 4px 18px rgba(0,0,0,.18);z-index:9999;max-height:280px;overflow-y:auto;min-width:170px}.cfi{padding:7px 14px;font-size:12px;cursor:pointer;white-space:nowrap}.cfi:hover{background:var(--accent-soft)}.cfi-sel{color:var(--accent);font-weight:700}</style></head>
 <body>
+<div id="cfd"></div>
 <div class="container">
 <div class="topnav">
   <div class="brand"><span class="dot"></span> Expense Dashboard</div>
@@ -381,9 +382,36 @@ function renderAccounts(){
 var FILTERS={};
 var _cfd_col=null;
 function colVal(r,c){return c==='account'?lbl(r.account):c==='description'?(r.description||r.payee||''):c==='category'?(r.category||''):c==='date'?(r.date||'').slice(0,7):r.amount>=0?'Income':'Expense';}
-function openCF(col,th){alert('Filter: '+col);}
-function setCF(col,val){if(val===null)delete FILTERS[col];else FILTERS[col]=val;STATE.page=1;render();}
-function closeCF(){}
+function openCF(col,th){
+  var d=document.getElementById('cfd');
+  if(_cfd_col===col&&d.style.display!=='none'){d.style.display='none';_cfd_col=null;return;}
+  _cfd_col=col;
+  var vals=[];
+  ALL.forEach(function(r){var v=colVal(r,col);if(v&&vals.indexOf(v)<0)vals.push(v);});
+  vals.sort();
+  var h='<div class="cfi cfi-all" data-col="'+esc(col)+'"><em>— Show all —</em></div>';
+  vals.forEach(function(v){
+    var s=FILTERS[col]===v;
+    h+='<div class="cfi'+(s?' cfi-sel':'')+'" data-col="'+esc(col)+'" data-val="'+esc(v)+'">'+esc(v)+'</div>';
+  });
+  d.innerHTML=h;
+  d.onclick=function(e){
+    var item=e.target.closest?e.target.closest('.cfi'):e.target;
+    if(!item||!item.classList||!item.classList.contains('cfi'))return;
+    var c=item.getAttribute('data-col');
+    var v=item.classList.contains('cfi-all')?null:item.getAttribute('data-val');
+    setCF(c,v);
+  };
+  var r=th.getBoundingClientRect();
+  d.style.left=r.left+'px';
+  d.style.top=(r.bottom+2)+'px';
+  d.style.display='block';
+}
+function setCF(col,val){
+  if(val===null)delete FILTERS[col];else FILTERS[col]=val;
+  var d=document.getElementById('cfd');if(d)d.style.display='none';_cfd_col=null;
+  STATE.page=1;render();
+}
 
 function renderTx(){
   var rows=filtered();
@@ -401,6 +429,7 @@ function renderTx(){
   }
   ['date','account','description','category','amount'].forEach(function(c){var el=document.getElementById('sort-'+c);if(el)el.textContent=SORT.col===c?(SORT.dir===1?'\u25b2':'\u25bc'):'';});
   if(SORT.col){rows=rows.slice().sort(function(a,b){var av,bv;if(SORT.col==='date'){av=a.date;bv=b.date;}else if(SORT.col==='account'){av=lbl(a.account).toLowerCase();bv=lbl(b.account).toLowerCase();}else if(SORT.col==='description'){av=(a.description||a.payee||'').toLowerCase();bv=(b.description||b.payee||'').toLowerCase();}else if(SORT.col==='category'){av=(a.category||'').toLowerCase();bv=(b.category||'').toLowerCase();}else{av=a.amount;bv=b.amount;}if(av<bv)return -SORT.dir;if(av>bv)return SORT.dir;return 0;});}
+  var _fks=Object.keys(FILTERS||{});for(var _fi=0;_fi<_fks.length;_fi++){var _fc=_fks[_fi];if(FILTERS[_fc]){var _fv=FILTERS[_fc];rows=rows.filter(function(r){return colVal(r,_fc)===_fv;});}}
   document.getElementById('tx-count').textContent=rows.length.toLocaleString()+' transactions';
   var total=rows.length,pages=Math.max(1,Math.ceil(total/PAGE));
   if(STATE.page>pages)STATE.page=1;
