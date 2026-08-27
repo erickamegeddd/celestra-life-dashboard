@@ -243,12 +243,18 @@ function renderKPIs(rows){
   document.getElementById('period-label').textContent=months.length?' · '+months[0]+' → '+months[months.length-1]:'';
 }
 function renderBar(rows){
+  var mNames=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   var map={};
-  rows.forEach(function(r){if(!map[r.month])map[r.month]={inc:0,exp:0};if(r.amount>0)map[r.month].inc+=r.amount;else map[r.month].exp+=(-r.amount);});
+  rows.forEach(function(r){
+    var m=(r.date||'').slice(0,7);
+    if(!m||m.length<7)return;
+    if(!map[m])map[m]={inc:0,exp:0};
+    if(r.amount>0)map[m].inc+=r.amount;else map[m].exp+=(-r.amount);
+  });
   var months=Object.keys(map).sort().slice(-12);
   var ctx=document.getElementById('barChart');
   if(barInst)barInst.destroy();
-  var dispMonths=months.map(function(m){var d=new Date(m+'-02');return d.toLocaleDateString('en-US',{month:'short',year:'numeric'});});
+  var dispMonths=months.map(function(m){var p=m.split('-');return mNames[parseInt(p[1],10)-1]+' '+p[0];});
   barInst=new Chart(ctx,{type:'bar',data:{labels:dispMonths,datasets:[
     {label:'Income',data:months.map(function(m){return map[m].inc;}),backgroundColor:'#22c55e60',borderColor:'#15803d',borderWidth:1.5,borderRadius:3},
     {label:'Expense',data:months.map(function(m){return map[m].exp;}),backgroundColor:'#f87171a0',borderColor:'#dc2626',borderWidth:1.5,borderRadius:3}
