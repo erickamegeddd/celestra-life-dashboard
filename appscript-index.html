@@ -8,7 +8,7 @@
 <style>
 :root{--bg:#f0f7f0;--panel:#fff;--ink:#162a19;--muted:#4d7a53;--line:#c4dcc6;--accent:#15803d;--accent-soft:#dcfce7;--pos:#15803d;--neg:#dc2626}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);font-size:13px;-webkit-font-smoothing:antialiased;min-height:100vh}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);font-size:13px;-webkit-font-smoothing:antialiased}
 .topnav{display:flex;align-items:center;padding:0 20px;height:52px;background:#14532d;border-bottom:none;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(20,83,45,.35)}
 .brand{display:flex;align-items:center;gap:9px;font-weight:700;font-size:15px;flex:none;color:#fff}
 .brand .dot{width:20px;height:20px;border-radius:6px;background:linear-gradient(135deg,#15803d,#22c55e)}
@@ -23,7 +23,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
 #sync-status{font-size:11px;color:rgba(255,255,255,0.8)}
 .sheet-link{font-size:11px;color:rgba(255,255,255,0.8);text-decoration:none;padding:5px 9px;border:1px solid rgba(255,255,255,0.3);border-radius:6px}
 .sheet-link:hover{color:#fff;border-color:#fff}
-.main{padding:16px 20px;max-width:1040px;margin:0 auto;overflow-x:hidden}
+.main{padding:16px 20px;max-width:100%}
 .filter-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
 .filter-bar h1{font-size:16px;font-weight:700}
 .filter-bar h1 span{color:var(--muted);font-weight:600}
@@ -165,7 +165,8 @@ td{padding:7px 9px;border-bottom:1px solid var(--line);white-space:nowrap;overfl
         <input type="date" id="d-start" onchange="renderTx()"/>
         <span style="color:var(--muted);font-size:11px">to</span>
         <input type="date" id="d-end" onchange="renderTx()"/>
-        <input type="search" id="tx-search" placeholder="Search…" oninput="renderTx()"/>
+        <select id="tx-acct-filter" class="flt" onchange="renderTx()" style="font-size:11px;padding:4px 20px 4px 7px"><option value="">All accounts</option></select>
+        <input type="search" id="tx-search" placeholder="Search desc, category…" oninput="renderTx()"/>
         <span id="tx-count" style="color:var(--muted);font-size:11px;margin-left:auto"></span>
       </div>
       <div style="overflow-x:auto"><table><thead><tr>
@@ -377,9 +378,16 @@ function renderTx(){
   var rows=filtered();
   var ds=document.getElementById('d-start').value,de=document.getElementById('d-end').value;
   var q=(document.getElementById('tx-search').value||'').toLowerCase();
+  var ta=document.getElementById('tx-acct-filter');var taVal=ta?ta.value:'';
   if(ds)rows=rows.filter(function(r){return r.date>=ds;});
   if(de)rows=rows.filter(function(r){return r.date<=de;});
+  if(taVal)rows=rows.filter(function(r){return r.account===taVal;});
   if(q)rows=rows.filter(function(r){return(r.description+r.payee+lbl(r.account)+r.category).toLowerCase().includes(q);});
+  // Populate account filter dropdown
+  if(ta&&ta.options.length<=1&&ALL.length>0){
+    var names=Array.from(new Set(ALL.map(function(r){return r.account;}))).sort();
+    names.forEach(function(nm){var o=document.createElement('option');o.value=nm;o.textContent=lbl(nm);ta.appendChild(o);});
+  }
   document.getElementById('tx-count').textContent=rows.length.toLocaleString()+' transactions';
   var total=rows.length,pages=Math.max(1,Math.ceil(total/PAGE));
   if(STATE.page>pages)STATE.page=1;
