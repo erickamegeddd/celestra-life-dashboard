@@ -490,8 +490,7 @@ function editDesc(ev,td){
       td.setAttribute('data-desc',nd);
       ALL.forEach(function(r){if((r.description||r.payee||'')===cur)r.description=nd;});
       var dMap=JSON.parse(localStorage.getItem('descMap')||'{}');
-      var normCur=normVendor(cur);
-      dMap[normCur]=nd;
+      var origDesc=td.getAttribute('data-orig')||cur;var normCur=normVendor(origDesc);dMap[normCur]=nd;
       localStorage.setItem('descMap',JSON.stringify(dMap));
       toast('Description saved');
       google.script.run.withFailureHandler(function(){}).renameDesc(cur,nd);
@@ -523,7 +522,7 @@ function renderTx(){
   if(STATE.page>pages)STATE.page=1;
   document.getElementById('tx-body').innerHTML=rows.slice((STATE.page-1)*PAGE,STATE.page*PAGE).map(function(r){
     var cls=r.amount<0?'amt-neg':'amt-pos';
-    return'<tr><td>'+r.date+'</td><td title="'+esc(r.account)+'">'+esc(lbl(r.account))+'</td><td class="desc-cell" data-id="'+esc(r.id)+'" data-desc="'+esc(r.description||r.payee||'')+'" data-date="'+esc(r.date||'')+'" data-account="'+esc(r.account||'')+'" data-amount="'+Number(r.amount||0)+'" onclick="editDesc(event,this)">'+esc(r.description||r.payee||'')+'<span class="edit-hint">✏</span></td>'
+    return'<tr><td>'+r.date+'</td><td title="'+esc(r.account)+'">'+esc(lbl(r.account))+'</td><td class="desc-cell" data-id="'+esc(r.id)+'" data-desc="'+esc(r.description||r.payee||'')+'" data-orig="'+esc(r._origDesc||r.description||r.payee||'')+'" data-date="'+esc(r.date||'')+'" data-account="'+esc(r.account||'')+'" data-amount="'+Number(r.amount||0)+'" onclick="editDesc(event,this)">'+esc(r.description||r.payee||'')+'<span class="edit-hint">✏</span></td>'
       +'<td class="cat-cell" data-id="'+esc(r.id)+'" data-cat="'+esc(r.category)+'" data-date="'+esc(r.date||'')+'" data-account="'+esc(r.account||'')+'" data-amount="'+Number(r.amount||0)+'" onclick="editCat(event,this)"><span class="tag">'+esc(r.category)+'</span><span class="edit-hint">✏</span></td>'
       +'<td class="right '+cls+'">'+usdAbs(r.amount)+'</td></tr>';
   }).join('');
@@ -673,7 +672,7 @@ function doSync(){
 function loadData(){
   var btn=document.getElementById('sync-btn');
   var token='<?= userToken ?>';if(token==='rob'||token==='frank'){VIEW_PARAM=token;var _vs=document.getElementById('view-sel');if(_vs){_vs.value=token;_vs.style.display='none';}token='';}
-  google.script.run.withSuccessHandler(function(data){ALL=data.rows||[];LIVE_BAL=data.accounts||{};var catMap=JSON.parse(localStorage.getItem('catMap')||'{}');var dM2=JSON.parse(localStorage.getItem('descMap')||'{}');ALL.forEach(function(r){if(r.category==='Payroll & Income'){r.category=r.amount<0?'Payroll':'Income';}var _rawD=r.description||r.payee||'';if(dM2[normVendor(_rawD)])r.description=dM2[normVendor(_rawD)];var cKey=(r.date||'')+'|'+(r.account||'')+'|'+r.amount;if(catMap[cKey])r.category=catMap[cKey];});document.getElementById('loading').style.display='none';document.getElementById('overview').classList.add('active');render();btn.disabled=false;btn.innerHTML='🔄 Sync';}).withFailureHandler(function(e){document.getElementById('loading').textContent='Error: '+e.message;btn.disabled=false;btn.innerHTML='🔄 Sync';}).getData(token||null);
+  google.script.run.withSuccessHandler(function(data){ALL=data.rows||[];LIVE_BAL=data.accounts||{};var catMap=JSON.parse(localStorage.getItem('catMap')||'{}');var dM2=JSON.parse(localStorage.getItem('descMap')||'{}');ALL.forEach(function(r){if(r.category==='Payroll & Income'){r.category=r.amount<0?'Payroll':'Income';}var _rawD=r.description||r.payee||'';r._origDesc=_rawD;if(dM2[normVendor(_rawD)])r.description=dM2[normVendor(_rawD)];var cKey=(r.date||'')+'|'+(r.account||'')+'|'+r.amount;if(catMap[cKey])r.category=catMap[cKey];});document.getElementById('loading').style.display='none';document.getElementById('overview').classList.add('active');render();btn.disabled=false;btn.innerHTML='🔄 Sync';}).withFailureHandler(function(e){document.getElementById('loading').textContent='Error: '+e.message;btn.disabled=false;btn.innerHTML='🔄 Sync';}).getData(token||null);
 }
 (function(){
   var saved=localStorage.getItem('lastSync');if(saved){var s=document.getElementById('sync-status');s.textContent=saved;s.style.color='var(--pos)';}
