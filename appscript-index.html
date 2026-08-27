@@ -93,7 +93,7 @@ td{padding:7px 9px;border-bottom:1px solid var(--line);white-space:nowrap;overfl
 .date-range-row .clear-btn{font-size:11px;color:var(--neg);background:none;border:none;cursor:pointer;font-weight:700;padding:2px 6px}
 .tgl.range-active{background:var(--accent);color:#fff !important;box-shadow:0 1px 3px rgba(0,0,0,.2)}
 </style>
-<!-- built:2026-08-27-03h --><style>.th-filt{cursor:pointer;user-select:none}.th-filt:hover{color:var(--accent)}.filt-ic{font-size:9px;margin-left:2px;opacity:.6}#cfd{display:none;position:fixed;background:#fff;border:1px solid var(--line);border-radius:6px;box-shadow:0 4px 18px rgba(0,0,0,.2);z-index:9999;max-height:250px;overflow-y:auto;min-width:160px}.cfi{padding:6px 13px;font-size:12px;cursor:pointer;white-space:nowrap}.cfi:hover{background:var(--accent-soft)}.cfi-sel{color:var(--accent);font-weight:700}</style></head>
+<!-- built:2026-08-27-03h --><style>.th-filt{cursor:pointer;user-select:none}.th-filt:hover{color:var(--accent)}#cfd{display:none;position:fixed;background:#fff;border:1px solid var(--line);border-radius:6px;box-shadow:0 4px 18px rgba(0,0,0,.2);z-index:9999;max-height:260px;overflow-y:auto;min-width:160px}.cfi{padding:6px 13px;font-size:12px;cursor:pointer;white-space:nowrap}.cfi:hover{background:var(--accent-soft)}.cfi-sel{color:var(--accent);font-weight:700}</style></head>
 <body>
 <div id="cfd"></div>
 <div class="container">
@@ -172,7 +172,7 @@ td{padding:7px 9px;border-bottom:1px solid var(--line);white-space:nowrap;overfl
         <span id="tx-count" style="color:var(--muted);font-size:11px;margin-left:auto"></span>
       </div>
       <div style="overflow-x:auto"><table><thead><tr>
-        <th class="th-filt" onclick="openCF('date',this)">Date <span class="filt-ic" data-cf="date">&#9660;</span></th><th class="th-filt" onclick="openCF('account',this)">Account <span class="filt-ic" data-cf="account">&#9660;</span></th><th class="th-filt" onclick="openCF('description',this)">Description <span class="filt-ic" data-cf="description">&#9660;</span></th><th class="th-filt" onclick="openCF('category',this)">Category <span class="filt-ic" data-cf="category">&#9660;</span></th><th class="th-filt right" onclick="openCF('amount',this)">Amount <span class="filt-ic" data-cf="amount">&#9660;</span></th>
+        <th class="th-filt" onclick="openCF('date',this)">Date &#9660;</th><th class="th-filt" onclick="openCF('account',this)">Account &#9660;</th><th class="th-filt" onclick="openCF('description',this)">Description &#9660;</th><th class="th-filt" onclick="openCF('category',this)">Category &#9660;</th><th class="th-filt right" onclick="openCF('amount',this)">Amount &#9660;</th>
       </tr></thead><tbody id="tx-body"></tbody></table></div>
       <div class="pager" id="pager"></div>
     </div>
@@ -381,8 +381,23 @@ function renderAccounts(){
 var FILTERS={};
 var _cfd_col=null;
 function colVal(r,col){if(col==='account')return lbl(r.account);if(col==='description')return r.description||r.payee||'';if(col==='category')return r.category||'';if(col==='date')return r.date?r.date.slice(0,7):'';return r.amount>=0?'Income':'Expense';}
-function openCF(col,th){var d=document.getElementById('cfd');if(_cfd_col===col&&d.style.display!=='none'){d.style.display='none';_cfd_col=null;return;}_cfd_col=col;var vals=[];ALL.forEach(function(r){var v=colVal(r,col);if(v&&vals.indexOf(v)<0)vals.push(v);});vals.sort();var h='<div class="cfi" onclick="setCF(''+col+'',null)"><em style="color:#888">— Show all —</em></div>';vals.forEach(function(v){var s=FILTERS[col]===v;h+='<div class="cfi'+(s?' cfi-sel':'')+'" onclick="setCF(''+col+'','+JSON.stringify(v)+')">'+esc(v)+'</div>';});d.innerHTML=h;var r=th.getBoundingClientRect();d.style.left=r.left+'px';d.style.top=(r.bottom+2)+'px';d.style.display='block';}
-function setCF(col,val){if(val===null)delete FILTERS[col];else FILTERS[col]=val;_cfd_col=null;var d=document.getElementById('cfd');if(d)d.style.display='none';STATE.page=1;render();}
+function openCF(col,th){
+  var d=document.getElementById('cfd');
+  if(_cfd_col===col&&d.style.display!=='none'){d.style.display='none';_cfd_col=null;return;}
+  _cfd_col=col;
+  var vals=[];
+  ALL.forEach(function(r){var v=colVal(r,col);if(v&&vals.indexOf(v)<0)vals.push(v);});
+  vals.sort();
+  var h='<div class="cfi" onclick="closeCF()"><em style="color:#888">&#10006; Close</em></div><div class="cfi" onclick="setCF(''+col+'',null)"><em style="color:#888">&#8212; Show all &#8212;</em></div>';
+  vals.forEach(function(v){var s=FILTERS[col]===v;h+='<div class="cfi'+(s?' cfi-sel':'')+'" onclick="setCF(''+col+'','+JSON.stringify(v)+')">'+esc(v)+'</div>';});
+  d.innerHTML=h;
+  var r=th.getBoundingClientRect();
+  d.style.left=r.left+'px';
+  d.style.top=(r.bottom+2)+'px';
+  d.style.display='block';
+}
+function setCF(col,val){if(val===null)delete FILTERS[col];else FILTERS[col]=val;closeCF();STATE.page=1;render();}
+function closeCF(){var d=document.getElementById('cfd');if(d)d.style.display='none';_cfd_col=null;}
 
 function renderTx(){
   var rows=filtered();
@@ -398,8 +413,7 @@ function renderTx(){
     var names=Array.from(new Set(ALL.map(function(r){return r.account;}))).sort();
     names.forEach(function(nm){var o=document.createElement('option');o.value=nm;o.textContent=lbl(nm);ta.appendChild(o);});
   }
-  try{var _fk=Object.keys(FILTERS||{});for(var _fi=0;_fi<_fk.length;_fi++){var _fc=_fk[_fi],_fv=FILTERS[_fc];if(_fv)rows=rows.filter(function(r){return colVal(r,_fc)===_fv;});}}catch(e2){}
-  try{var _fi2=document.querySelectorAll('.filt-ic');for(var _i3=0;_i3<_fi2.length;_i3++){var _ic=_fi2[_i3],_col=_ic.getAttribute('data-cf');_ic.style.color=(FILTERS&&FILTERS[_col])?'var(--accent)':'';}}catch(e3){}
+  var _fks=Object.keys(FILTERS||{});for(var _i=0;_i<_fks.length;_i++){var _c=_fks[_i],_v=FILTERS[_c];if(_v){var _cv=_c;rows=rows.filter(function(r){return colVal(r,_cv)===_v;});}}
   document.getElementById('tx-count').textContent=rows.length.toLocaleString()+' transactions';
   var total=rows.length,pages=Math.max(1,Math.ceil(total/PAGE));
   if(STATE.page>pages)STATE.page=1;
@@ -451,7 +465,6 @@ function loadData(){
   loadData();
   google.script.run.withSuccessHandler(function(url){var el=document.getElementById('sheet-link');el.href=url;el.style.display='';}).getSheetUrl();
 })();
-document.addEventListener('click',function(e){if(!e||!e.target)return;var d=document.getElementById('cfd');if(!d||d.style.display==='none')return;try{if(d.contains(e.target))return;if(e.target.closest&&e.target.closest('.th-filt'))return;}catch(x){}d.style.display='none';_cfd_col=null;});
 </script>
 </div>
 </body>
