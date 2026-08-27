@@ -258,7 +258,7 @@ var ACCT_LABELS={
 function lbl(nm){return ACCT_LABELS[nm]||nm;}
 var ALL=[],LIVE_BAL={},STATE={period:180,account:'',catFilter:null,page:1,customStart:'',customEnd:''};
 var SORT={col:null,dir:1};
-var VIEW_PARAM=(function(){try{var p=new URLSearchParams(window.location.search);return(p.get('view')||'').toLowerCase();}catch(e){return'';}})();
+var VIEW_PARAM=(function(){try{var h=window.location.hash||'';var m=h.match(/[#&]view=([^&]*)/i);return m?m[1].toLowerCase():'';}catch(e){return'';}})();
 var FRANK_KEYS=['8238','6469','9575','0928','5917','5150','8619','1539','4005','1009','9225','566','728','3988','3438','3439','9785','340','707'];
 function isFrankAcct(nm){var n=(nm||'').toLowerCase();for(var i=0;i<FRANK_KEYS.length;i++){if(n.indexOf('('+FRANK_KEYS[i]+')')!==-1)return true;}return false;}
 var PAGE=50,barInst=null,donutInst=null,recChartInst=null;
