@@ -93,7 +93,21 @@ td{padding:7px 9px;border-bottom:1px solid var(--line);white-space:nowrap;overfl
 .date-range-row .clear-btn{font-size:11px;color:var(--neg);background:none;border:none;cursor:pointer;font-weight:700;padding:2px 6px}
 .tgl.range-active{background:var(--accent);color:#fff !important;box-shadow:0 1px 3px rgba(0,0,0,.2)}
 </style>
-<!-- built:2026-08-27-03h --><style>.th-filt{cursor:pointer;user-select:none}.th-filt:hover{color:var(--accent)}.desc-cell{cursor:pointer}.desc-input{width:100%;box-sizing:border-box;border:1px solid var(--accent);border-radius:3px;padding:2px 5px;font-size:12px;font-family:inherit}#cfd{display:none;position:fixed;background:#fff;border:1px solid var(--line);border-radius:6px;box-shadow:0 4px 18px rgba(0,0,0,.18);z-index:9999;max-height:280px;overflow-y:auto;min-width:170px}.cfi{padding:7px 14px;font-size:12px;cursor:pointer;white-space:nowrap}.cfi:hover{background:var(--accent-soft)}.cfi-sel{color:var(--accent);font-weight:700}.cfd-search{width:100%;box-sizing:border-box;padding:7px 10px;border:none;border-bottom:1px solid var(--line);outline:none;font-size:12px;background:#f8faf8;font-family:inherit}</style></head>
+<!-- built:2026-08-27-03h --><style>.th-filt{cursor:pointer;user-select:none}.th-filt:hover{color:var(--accent)}.desc-cell{cursor:pointer}.desc-input{width:100%;box-sizing:border-box;border:1px solid var(--accent);border-radius:3px;padding:2px 5px;font-size:12px;font-family:inherit}#cfd{display:none;position:fixed;background:#fff;border:1px solid var(--line);border-radius:6px;box-shadow:0 4px 18px rgba(0,0,0,.18);z-index:9999;max-height:280px;overflow-y:auto;min-width:170px}.cfi{padding:7px 14px;font-size:12px;cursor:pointer;white-space:nowrap}.cfi:hover{background:var(--accent-soft)}.cfi-sel{color:var(--accent);font-weight:700}.cfd-search{width:100%;box-sizing:border-box;padding:7px 10px;border:none;border-bottom:1px solid var(--line);outline:none;font-size:12px;background:#f8faf8;font-family:inherit}.tab-btns{display:flex;gap:0;border-bottom:2px solid var(--line);margin-bottom:14px}
+.tab-btn{border:none;background:transparent;padding:9px 18px;font-size:12px;font-weight:700;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;transition:color .15s}
+.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab-btn:hover{color:var(--accent)}
+.rec-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.rec-kpi{background:#14532d;border-radius:8px;padding:10px 14px}
+.rec-kpi .lbl{color:rgba(255,255,255,0.7);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+.rec-kpi .val{color:#fff;font-size:17px;font-weight:700;margin:4px 0 2px}
+.rec-kpi .sub{color:rgba(255,255,255,0.55);font-size:10px}
+#tab-rec table{width:100%;border-collapse:collapse;font-size:12px}
+#tab-rec th{text-align:left;color:var(--muted);font-weight:700;font-size:10px;text-transform:uppercase;padding:7px 8px;border-bottom:2px solid var(--line);white-space:nowrap}
+#tab-rec th.r,#tab-rec td.r{text-align:right}
+#tab-rec td{padding:6px 8px;border-bottom:1px solid var(--line);white-space:normal;overflow:visible;max-width:none}
+#tab-rec tr.totals-row td{font-weight:700;background:var(--accent-soft);border-top:2px solid var(--line)}
+.rec-amt{color:#fff;background:#14532d;border-radius:4px;padding:2px 7px;font-size:11px;font-weight:600;display:inline-block;white-space:nowrap}</style></head>
 <body>
 <div id="cfd"></div>
 <div class="container">
@@ -162,6 +176,11 @@ td{padding:7px 9px;border-bottom:1px solid var(--line);white-space:nowrap;overfl
       </div>
     </div>
     <div class="card" style="margin-top:4px">
+      <div class="tab-btns">
+        <button class="tab-btn active" id="tabbtn-tx" onclick="switchCardTab('tx')">Transactions</button>
+        <button class="tab-btn" id="tabbtn-rec" onclick="switchCardTab('rec')">🔁 Recurring Charges</button>
+      </div>
+      <div id="tab-tx">
       <div class="ledger-controls">
         <b style="font-size:13px">Transactions</b>
         <input type="date" id="d-start" onchange="renderTx()"/>
@@ -175,6 +194,12 @@ td{padding:7px 9px;border-bottom:1px solid var(--line);white-space:nowrap;overfl
         <th style="cursor:pointer" onclick="openCF('date',this)">Date</th><th style="cursor:pointer" onclick="openCF('account',this)">Account</th><th style="cursor:pointer" onclick="openCF('description',this)">Description</th><th style="cursor:pointer" onclick="openCF('category',this)">Category</th><th class="right" style="cursor:pointer" onclick="openCF('amount',this)">Amount</th>
       </tr></thead><tbody id="tx-body"></tbody></table></div>
       <div class="pager" id="pager"></div>
+      </div>
+      <div id="tab-rec" style="display:none">
+        <div class="rec-kpis" id="rec-kpis"></div>
+        <div style="position:relative;height:180px;margin-bottom:14px"><canvas id="recChart"></canvas></div>
+        <div style="overflow-x:auto"><table id="rec-table"></table></div>
+      </div>
     </div>
   </div>
   <div id="accounts">
@@ -232,7 +257,7 @@ var ACCT_LABELS={
 function lbl(nm){return ACCT_LABELS[nm]||nm;}
 var ALL=[],LIVE_BAL={},STATE={period:180,account:'',catFilter:null,page:1,customStart:'',customEnd:''};
 var SORT={col:null,dir:1};
-var PAGE=50,barInst=null,donutInst=null;
+var PAGE=50,barInst=null,donutInst=null,recChartInst=null;
 var CUSTOM_CATS=JSON.parse(localStorage.getItem('expCats')||'[]');
 var ALL_CATS=['Bank Fees & Interest','Business Income','Credit Card Payments','Dining','Gas & Fuel','Groceries','Healthcare','Insurance','Investment','Marketing & Advertising','Office & Technology','Online Shopping','Other Income','Payroll','Income','Professional Services','Rent & Mortgage','Transfers Out','Travel','Uncategorized/Other'].concat(CUSTOM_CATS);
 var COLORS=['#15803d','#ef4444','#f59e0b','#3b82f6','#8b5cf6','#ec4899','#14b8a6','#f97316','#84cc16','#06b6d4','#a855f7','#64748b','#0ea5e9','#d946ef','#22c55e','#eab308','#6366f1'];
@@ -286,7 +311,7 @@ function clearCustomRange(){
   STATE.page=1;render();
 }
 
-function render(){var rows=filtered();renderKPIs(rows);renderBar(rows);renderDonut(rows);renderAccounts();renderTx();}
+function render(){var rows=filtered();renderKPIs(rows);renderBar(rows);renderDonut(rows);renderAccounts();renderTx();var tr=document.getElementById('tab-rec');if(tr&&tr.style.display!=='none')renderRecurring();}
 function renderKPIs(rows){
   var spent=0,income=0;
   rows.forEach(function(r){if(r.amount<0)spent+=r.amount;else income+=r.amount;});
@@ -516,6 +541,59 @@ function editCat(ev,td){
   sel.focus();
 }
 function toggleAG(el){var gid=el.getAttribute('data-gid');var d=document.getElementById(gid);var ch=el.querySelector('span');if(!d)return;var open=d.style.display!=='none';d.style.display=open?'none':'block';if(ch)ch.textContent=open?'▶':'▼';}
+function switchCardTab(tab){
+  document.getElementById('tab-tx').style.display=tab==='tx'?'':'none';
+  document.getElementById('tab-rec').style.display=tab==='rec'?'':'none';
+  document.getElementById('tabbtn-tx').className='tab-btn'+(tab==='tx'?' active':'');
+  document.getElementById('tabbtn-rec').className='tab-btn'+(tab==='rec'?' active':'');
+  if(tab==='rec')renderRecurring();
+}
+function normVendor(s){return(s||'').replace(/\b\d{5,}\b/g,'').replace(/[_#*|]+/g,' ').replace(/\s{2,}/g,' ').trim().toLowerCase();}
+function renderRecurring(){
+  var mNames=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  function moLabel(m){var p=m.split('-');return mNames[parseInt(p[1],10)-1]+' \''+p[0].slice(2);}
+  var rows=filtered().filter(function(r){return r.amount<0;});
+  var vmap={};
+  rows.forEach(function(r){
+    var key=normVendor(r.description||r.payee||'');if(!key)return;
+    if(!vmap[key]){vmap[key]={display:(r.description||r.payee||'').trim(),category:r.category||'',months:{},total:0};}
+    var mo=(r.date||'').slice(0,7);
+    vmap[key].months[mo]=(vmap[key].months[mo]||0)+(-r.amount);
+    vmap[key].total+=(-r.amount);
+  });
+  var recurring=Object.values(vmap).filter(function(v){return Object.keys(v.months).length>=2;});
+  recurring.sort(function(a,b){return b.total-a.total;});
+  var moSet={};recurring.forEach(function(v){Object.keys(v.months).forEach(function(mo){moSet[mo]=1;});});
+  var months=Object.keys(moSet).sort();
+  var totalRec=recurring.reduce(function(s,v){return s+v.total;},0);
+  var totalExp=rows.reduce(function(s,r){return s+(-r.amount);},0);
+  var avgMo=months.length?totalRec/months.length:0;
+  var largest=recurring[0]||null;
+  var pct=totalExp?Math.round(totalRec/totalExp*100):0;
+  // KPIs
+  document.getElementById('rec-kpis').innerHTML=
+    '<div class="rec-kpi"><div class="lbl">Recurring Vendors</div><div class="val">'+recurring.length+'</div><div class="sub">billing in 2+ months</div></div>'+
+    '<div class="rec-kpi"><div class="lbl">Avg / Month</div><div class="val">'+usdAbs(avgMo)+'</div><div class="sub">across '+months.length+' month'+(months.length!==1?'s':'')+'</div></div>'+
+    '<div class="rec-kpi"><div class="lbl">Largest Recurring</div><div class="val">'+usdAbs(largest?largest.total:0)+'</div><div class="sub">'+(largest?esc(largest.display.slice(0,32)):'—')+'</div></div>'+
+    '<div class="rec-kpi"><div class="lbl">Total Recurring</div><div class="val">'+usdAbs(totalRec)+'</div><div class="sub">'+pct+'% of expenses</div></div>';
+  // Chart
+  var moBarData=months.map(function(mo){return recurring.reduce(function(s,v){return s+(v.months[mo]||0);},0);});
+  var ctx=document.getElementById('recChart');
+  if(recChartInst)recChartInst.destroy();
+  recChartInst=new Chart(ctx,{type:'bar',data:{labels:months.map(moLabel),datasets:[{label:'Recurring',data:moBarData,backgroundColor:'#14532d99',borderColor:'#14532d',borderWidth:1.5,borderRadius:4}]},options:{maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return usdAbs(c.parsed.y);}}}},scales:{x:{ticks:{font:{size:10}}},y:{ticks:{callback:function(v){return'$'+(v/1000).toFixed(0)+'k';}}}}}});
+  // Table
+  var tbl=document.getElementById('rec-table');
+  if(!recurring.length){tbl.innerHTML='<tr><td style="padding:20px;color:var(--muted);text-align:center">No recurring charges found in this period.</td></tr>';return;}
+  var moTotals={};months.forEach(function(mo){moTotals[mo]=0;});
+  recurring.forEach(function(v){months.forEach(function(mo){moTotals[mo]+=(v.months[mo]||0);});});
+  var thead='<thead><tr><th>Vendor</th><th>Category</th>'+months.map(function(mo){return'<th class="r">'+moLabel(mo)+'</th>';}).join('')+'<th class="r">Avg/mo</th><th class="r">Total</th></tr></thead>';
+  var tbody='<tbody>'+recurring.map(function(v){
+    var avg=v.total/Object.keys(v.months).length;
+    var moCells=months.map(function(mo){var a=v.months[mo]||0;return a?'<td class="r"><span class="rec-amt">'+usdAbs(a)+'</span></td>':'<td class="r" style="color:var(--muted)">—</td>';});
+    return'<tr><td>'+esc(v.display)+'</td><td><span class="tag">'+esc(v.category)+'</span></td>'+moCells.join('')+'<td class="r">'+usdAbs(avg)+'</td><td class="r" style="font-weight:700">'+usdAbs(v.total)+'</td></tr>';
+  }).join('')+'<tr class="totals-row"><td colspan="2">Monthly total</td>'+months.map(function(mo){return'<td class="r">'+usdAbs(moTotals[mo])+'</td>';}).join('')+'<td class="r">'+usdAbs(totalRec/months.length)+'</td><td class="r">'+usdAbs(totalRec)+'</td></tr></tbody>';
+  tbl.innerHTML=thead+tbody;
+}
 function toggleCat(c){STATE.catFilter=(STATE.catFilter===c?null:c);render();}
 function editLegendCat(el,oldCat){
   var lrow=el.parentElement;if(lrow.querySelector('input'))return;
