@@ -488,7 +488,8 @@ function editDesc(ev,td){
       _descSaved=true;
       td.innerHTML=esc(nd)+'<span class="edit-hint">✏</span>';
       td.setAttribute('data-desc',nd);
-      ALL.forEach(function(r){if((r.description||r.payee||'')===cur)r.description=nd;});
+      var _normKey=normVendor(td.getAttribute('data-orig')||cur);
+      ALL.forEach(function(r){var _rOrig=r._origDesc||(r.description||r.payee||'');if(normVendor(_rOrig)===_normKey)r.description=nd;});
       var dMap=JSON.parse(localStorage.getItem('descMap')||'{}');
       var origDesc=td.getAttribute('data-orig')||cur;var normCur=normVendor(origDesc);dMap[normCur]=nd;
       localStorage.setItem('descMap',JSON.stringify(dMap));
