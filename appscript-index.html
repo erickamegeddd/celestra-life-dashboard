@@ -171,7 +171,7 @@ td{padding:7px 9px;border-bottom:1px solid var(--line);white-space:nowrap;overfl
         <span id="tx-count" style="color:var(--muted);font-size:11px;margin-left:auto"></span>
       </div>
       <div style="overflow-x:auto"><table><thead><tr>
-        <th onclick="sortBy('date')" style="cursor:pointer;user-select:none">Date <span id="sort-date" style="color:var(--accent)"></span></th><th onclick="sortBy('account')" style="cursor:pointer;user-select:none">Account <span id="sort-account" style="color:var(--accent)"></span></th><th onclick="sortBy('description')" style="cursor:pointer;user-select:none">Description <span id="sort-description" style="color:var(--accent)"></span></th><th onclick="sortBy('category')" style="cursor:pointer;user-select:none">Category <span id="sort-category" style="color:var(--accent)"></span></th><th class="right" onclick="sortBy('amount')" style="cursor:pointer;user-select:none">Amount <span id="sort-amount" style="color:var(--accent)"></span></th>
+        <th style="cursor:pointer" onclick="openCF('date',this)">Date</th><th style="cursor:pointer" onclick="openCF('account',this)">Account</th><th style="cursor:pointer" onclick="openCF('description',this)">Description</th><th style="cursor:pointer" onclick="openCF('category',this)">Category</th><th class="right" style="cursor:pointer" onclick="openCF('amount',this)">Amount</th>
       </tr></thead><tbody id="tx-body"></tbody></table></div>
       <div class="pager" id="pager"></div>
     </div>
@@ -378,6 +378,13 @@ function renderAccounts(){
   sel.innerHTML='<option value="">All accounts</option>';
   names.sort().forEach(function(nm){sel.insertAdjacentHTML('beforeend','<option value="'+esc(nm)+'"'+(nm===cur?' selected':'')+'>'+esc(lbl(nm))+'</option>');});
 }
+var FILTERS={};
+var _cfd_col=null;
+function colVal(r,c){return c==='account'?lbl(r.account):c==='description'?(r.description||r.payee||''):c==='category'?(r.category||''):c==='date'?(r.date||'').slice(0,7):r.amount>=0?'Income':'Expense';}
+function openCF(col,th){alert('Filter: '+col);}
+function setCF(col,val){if(val===null)delete FILTERS[col];else FILTERS[col]=val;STATE.page=1;render();}
+function closeCF(){}
+
 function renderTx(){
   var rows=filtered();
   var ds=document.getElementById('d-start').value,de=document.getElementById('d-end').value;
