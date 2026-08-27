@@ -93,7 +93,7 @@ td{padding:7px 9px;border-bottom:1px solid var(--line);white-space:nowrap;overfl
 .date-range-row .clear-btn{font-size:11px;color:var(--neg);background:none;border:none;cursor:pointer;font-weight:700;padding:2px 6px}
 .tgl.range-active{background:var(--accent);color:#fff !important;box-shadow:0 1px 3px rgba(0,0,0,.2)}
 </style>
-<!-- built:2026-08-27-03h --><style>.th-filt{cursor:pointer;user-select:none}.th-filt:hover{color:var(--accent)}#cfd{display:none;position:fixed;background:#fff;border:1px solid var(--line);border-radius:6px;box-shadow:0 4px 18px rgba(0,0,0,.18);z-index:9999;max-height:280px;overflow-y:auto;min-width:170px}.cfi{padding:7px 14px;font-size:12px;cursor:pointer;white-space:nowrap}.cfi:hover{background:var(--accent-soft)}.cfi-sel{color:var(--accent);font-weight:700}</style></head>
+<!-- built:2026-08-27-03h --><style>.th-filt{cursor:pointer;user-select:none}.th-filt:hover{color:var(--accent)}#cfd{display:none;position:fixed;background:#fff;border:1px solid var(--line);border-radius:6px;box-shadow:0 4px 18px rgba(0,0,0,.18);z-index:9999;max-height:280px;overflow-y:auto;min-width:170px}.cfi{padding:7px 14px;font-size:12px;cursor:pointer;white-space:nowrap}.cfi:hover{background:var(--accent-soft)}.cfi-sel{color:var(--accent);font-weight:700}.cfd-search{width:100%;box-sizing:border-box;padding:7px 10px;border:none;border-bottom:1px solid var(--line);outline:none;font-size:12px;background:#f8faf8;font-family:inherit}</style></head>
 <body>
 <div id="cfd"></div>
 <div class="container">
@@ -389,12 +389,14 @@ function openCF(col,th){
   var vals=[];
   ALL.forEach(function(r){var v=colVal(r,col);if(v&&vals.indexOf(v)<0)vals.push(v);});
   vals.sort();
-  var h='<div class="cfi cfi-all" data-col="'+esc(col)+'"><em>— Show all —</em></div>';
+  var h='<input class="cfd-search" placeholder="Type to search..." oninput="filterCFD(this)">';
+  h+='<div class="cfi cfi-all" data-col="'+esc(col)+'"><em>— Show all —</em></div>';
   vals.forEach(function(v){
     var s=FILTERS[col]===v;
     h+='<div class="cfi'+(s?' cfi-sel':'')+'" data-col="'+esc(col)+'" data-val="'+esc(v)+'">'+esc(v)+'</div>';
   });
   d.innerHTML=h;
+  setTimeout(function(){var inp=d.querySelector('.cfd-search');if(inp)inp.focus();},30);
   d.onclick=function(e){
     var item=e.target.closest?e.target.closest('.cfi'):e.target;
     if(!item||!item.classList||!item.classList.contains('cfi'))return;
@@ -411,6 +413,14 @@ function setCF(col,val){
   if(val===null)delete FILTERS[col];else FILTERS[col]=val;
   var d=document.getElementById('cfd');if(d)d.style.display='none';_cfd_col=null;
   STATE.page=1;render();
+}
+function filterCFD(inp){
+  var q=(inp.value||'').toLowerCase();
+  var items=inp.parentNode.querySelectorAll('.cfi');
+  for(var i=0;i<items.length;i++){
+    var txt=(items[i].textContent||'').toLowerCase();
+    items[i].style.display=(!q||txt.indexOf(q)>=0)?'':'none';
+  }
 }
 
 function renderTx(){
