@@ -587,7 +587,7 @@ function switchCardTab(tab){
   document.getElementById('tabbtn-rec').className='tab-btn'+(tab==='rec'?' active':'');
   if(tab==='rec')renderRecurring();
 }
-function normVendor(s){return(s||'').replace(/\sto\s\S+/gi,'').replace(/\b[\dX#]+\b/g,'').replace(/[_#*|]+/g,' ').replace(/\s{2,}/g,' ').trim().toLowerCase();}
+function normVendor(s){return(s||'').replace(/\b[X]+[\dX]+\b/g,'').replace(/\b\d{5,}\b/g,'').replace(/[_]+/g,' ').replace(/\s{2,}/g,' ').trim().toLowerCase();}
 function renderRecurring(){
   var mNames=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   function moLabel(m){var p=m.split('-');return mNames[parseInt(p[1],10)-1]+' \''+p[0].slice(2);}
@@ -600,7 +600,7 @@ function renderRecurring(){
   var vmap={};
   rows.forEach(function(r){
     var key=normVendor(r.description||r.payee||'');if(!key)return;
-    if(!vmap[key]){var _raw=(r.description||r.payee||'').trim();var _disp=_raw.replace(/\s+to\s+\S+/gi,'').replace(/\b[\dX#]{4,}\b/g,'').replace(/\s{2,}/g,' ').trim();vmap[key]={display:_disp||_raw,category:r.category||'',months:{},total:0};}
+    if(!vmap[key]){var _raw=(r.description||r.payee||'').trim();var _disp=_raw.replace(/\b[X]+[\dX]+\b/g,'').replace(/\b\d{5,}\b/g,'').replace(/[_]+/g,' ').replace(/\s{2,}/g,' ').trim();vmap[key]={display:_disp||_raw,category:r.category||'',months:{},total:0};}
     var mo=(r.date||'').slice(0,7);
     vmap[key].months[mo]=(vmap[key].months[mo]||0)+(-r.amount);
     vmap[key].total+=(-r.amount);
