@@ -72,7 +72,7 @@ select.flt{appearance:none;border:1px solid var(--line);background:#fff;border-r
 input[type=date]{border:1px solid var(--line);border-radius:7px;padding:5px 8px;font-size:12px;color:var(--ink);outline:none;background:var(--panel)}
 input[type=search]{border:1px solid var(--line);border-radius:7px;padding:5px 10px;font-size:12px;color:var(--ink);outline:none;background:var(--panel);width:180px}
 table{width:100%;border-collapse:collapse;font-size:12px}
-th{text-align:left;color:var(--muted);font-weight:700;font-size:10.5px;text-transform:uppercase;padding:8px 9px;border-bottom:1px solid var(--line)}
+th{text-align:left;color:var(--muted);font-weight:700;font-size:10.5px;text-transform:uppercase;padding:8px 9px;border-bottom:1px solid var(--line)}th[onclick]:hover{color:var(--accent);background:var(--accent-soft)}
 td{padding:7px 9px;border-bottom:1px solid var(--line);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:280px}
 .tag{background:var(--accent-soft);color:var(--accent);border-radius:12px;padding:2px 8px;font-size:11px;font-weight:600}
 .amt-pos{color:var(--pos);font-weight:700}
@@ -93,12 +93,7 @@ td{padding:7px 9px;border-bottom:1px solid var(--line);white-space:nowrap;overfl
 .date-range-row .clear-btn{font-size:11px;color:var(--neg);background:none;border:none;cursor:pointer;font-weight:700;padding:2px 6px}
 .tgl.range-active{background:var(--accent);color:#fff !important;box-shadow:0 1px 3px rgba(0,0,0,.2)}
 </style>
-<!-- built:2026-08-27-03h --><style>
-.th-filt{cursor:pointer;user-select:none}.th-filt:hover{color:var(--accent)}
-.filt-ic{font-size:10px;margin-left:3px;opacity:.7}
-#cfd{display:none;position:fixed;background:#fff;border:1px solid var(--line);border-radius:7px;box-shadow:0 6px 20px rgba(0,0,0,.18);z-index:9999;max-height:260px;overflow-y:auto;min-width:170px}
-.cfi{padding:7px 14px;font-size:12px;cursor:pointer;white-space:nowrap}.cfi:hover{background:var(--accent-soft)}.cfi-sel{color:var(--accent);font-weight:700}
-</style></head>
+<!-- built:2026-08-27-03h --><style>.th-filt{cursor:pointer;user-select:none}.th-filt:hover{color:var(--accent)}.filt-ic{font-size:9px;margin-left:2px;opacity:.6}#cfd{display:none;position:fixed;background:#fff;border:1px solid var(--line);border-radius:6px;box-shadow:0 4px 18px rgba(0,0,0,.2);z-index:9999;max-height:250px;overflow-y:auto;min-width:160px}.cfi{padding:6px 13px;font-size:12px;cursor:pointer;white-space:nowrap}.cfi:hover{background:var(--accent-soft)}.cfi-sel{color:var(--accent);font-weight:700}</style></head>
 <body>
 <div id="cfd"></div>
 <div class="container">
@@ -177,7 +172,7 @@ td{padding:7px 9px;border-bottom:1px solid var(--line);white-space:nowrap;overfl
         <span id="tx-count" style="color:var(--muted);font-size:11px;margin-left:auto"></span>
       </div>
       <div style="overflow-x:auto"><table><thead><tr>
-        <th class="th-filt" onclick="openCF('date',this)">Date <span class="filt-ic" data-cf="date">▾</span></th><th class="th-filt" onclick="openCF('account',this)">Account <span class="filt-ic" data-cf="account">▾</span></th><th class="th-filt" onclick="openCF('description',this)">Description <span class="filt-ic" data-cf="description">▾</span></th><th class="th-filt" onclick="openCF('category',this)">Category <span class="filt-ic" data-cf="category">▾</span></th><th class="th-filt right" onclick="openCF('amount',this)">Amount <span class="filt-ic" data-cf="amount">▾</span></th>
+        <th class="th-filt" onclick="openCF('date',this)">Date <span class="filt-ic" data-cf="date">&#9660;</span></th><th class="th-filt" onclick="openCF('account',this)">Account <span class="filt-ic" data-cf="account">&#9660;</span></th><th class="th-filt" onclick="openCF('description',this)">Description <span class="filt-ic" data-cf="description">&#9660;</span></th><th class="th-filt" onclick="openCF('category',this)">Category <span class="filt-ic" data-cf="category">&#9660;</span></th><th class="th-filt right" onclick="openCF('amount',this)">Amount <span class="filt-ic" data-cf="amount">&#9660;</span></th>
       </tr></thead><tbody id="tx-body"></tbody></table></div>
       <div class="pager" id="pager"></div>
     </div>
@@ -236,8 +231,6 @@ var ACCT_LABELS={
 };
 function lbl(nm){return ACCT_LABELS[nm]||nm;}
 var ALL=[],LIVE_BAL={},STATE={period:180,account:'',catFilter:null,page:1,customStart:'',customEnd:''};
-var FILTERS={};
-var _cfd_col=null;
 var PAGE=50,barInst=null,donutInst=null;
 var CUSTOM_CATS=JSON.parse(localStorage.getItem('expCats')||'[]');
 var ALL_CATS=['Bank Fees & Interest','Business Income','Credit Card Payments','Dining','Gas & Fuel','Groceries','Healthcare','Insurance','Investment','Marketing & Advertising','Office & Technology','Online Shopping','Other Income','Payroll & Income','Professional Services','Rent & Mortgage','Transfers Out','Travel','Uncategorized/Other'].concat(CUSTOM_CATS);
@@ -291,42 +284,6 @@ function clearCustomRange(){
   document.getElementById('range-btn').classList.remove('range-active');
   STATE.page=1;render();
 }
-
-function colVal(r,col){
-  if(col==='account')return lbl(r.account);
-  if(col==='description')return r.description||r.payee||'';
-  if(col==='category')return r.category||'';
-  if(col==='date')return r.date?r.date.slice(0,7):'';
-  if(col==='amount')return r.amount>=0?'Income':'Expense';
-  return '';
-}
-function openCF(col,thEl){
-  var cfd=document.getElementById('cfd');
-  if(_cfd_col===col&&cfd.style.display!=='none'){cfd.style.display='none';_cfd_col=null;return;}
-  _cfd_col=col;
-  var vals=[];
-  ALL.forEach(function(r){var v=colVal(r,col);if(v&&vals.indexOf(v)<0)vals.push(v);});
-  vals.sort();
-  var h='<div class="cfi" onclick="setCF(''+col+'',null)"><em style="color:var(--muted)">— Show all —</em></div>';
-  vals.forEach(function(v){var sel=FILTERS[col]===v;h+='<div class="cfi'+(sel?' cfi-sel':'')+'" onclick="setCF(''+col+'','+JSON.stringify(v)+')">'+esc(v)+'</div>';});
-  cfd.innerHTML=h;
-  var rect=thEl.getBoundingClientRect();
-  cfd.style.left=rect.left+'px';
-  cfd.style.top=(rect.bottom+2)+'px';
-  cfd.style.display='block';
-}
-function setCF(col,val){
-  if(val===null)delete FILTERS[col];else FILTERS[col]=val;
-  _cfd_col=null;document.getElementById('cfd').style.display='none';
-  STATE.page=1;render();
-}
-document.addEventListener('click',function(e){
-  var cfd=document.getElementById('cfd');
-  if(!cfd)return;
-  if(cfd.contains(e.target))return;
-  if(e.target.closest&&e.target.closest('.th-filt'))return;
-  cfd.style.display='none';_cfd_col=null;
-});
 
 function render(){var rows=filtered();renderKPIs(rows);renderBar(rows);renderDonut(rows);renderAccounts();renderTx();}
 function renderKPIs(rows){
@@ -421,6 +378,12 @@ function renderAccounts(){
   sel.innerHTML='<option value="">All accounts</option>';
   names.sort().forEach(function(nm){sel.insertAdjacentHTML('beforeend','<option value="'+esc(nm)+'"'+(nm===cur?' selected':'')+'>'+esc(lbl(nm))+'</option>');});
 }
+var FILTERS={};
+var _cfd_col=null;
+function colVal(r,col){if(col==='account')return lbl(r.account);if(col==='description')return r.description||r.payee||'';if(col==='category')return r.category||'';if(col==='date')return r.date?r.date.slice(0,7):'';return r.amount>=0?'Income':'Expense';}
+function openCF(col,th){var d=document.getElementById('cfd');if(_cfd_col===col&&d.style.display!=='none'){d.style.display='none';_cfd_col=null;return;}_cfd_col=col;var vals=[];ALL.forEach(function(r){var v=colVal(r,col);if(v&&vals.indexOf(v)<0)vals.push(v);});vals.sort();var h='<div class="cfi" onclick="setCF(''+col+'',null)"><em style="color:#888">— Show all —</em></div>';vals.forEach(function(v){var s=FILTERS[col]===v;h+='<div class="cfi'+(s?' cfi-sel':'')+'" onclick="setCF(''+col+'','+JSON.stringify(v)+')">'+esc(v)+'</div>';});d.innerHTML=h;var r=th.getBoundingClientRect();d.style.left=r.left+'px';d.style.top=(r.bottom+2)+'px';d.style.display='block';}
+function setCF(col,val){if(val===null)delete FILTERS[col];else FILTERS[col]=val;_cfd_col=null;var d=document.getElementById('cfd');if(d)d.style.display='none';STATE.page=1;render();}
+
 function renderTx(){
   var rows=filtered();
   var ds=document.getElementById('d-start').value,de=document.getElementById('d-end').value;
@@ -435,9 +398,9 @@ function renderTx(){
     var names=Array.from(new Set(ALL.map(function(r){return r.account;}))).sort();
     names.forEach(function(nm){var o=document.createElement('option');o.value=nm;o.textContent=lbl(nm);ta.appendChild(o);});
   }
-  Object.keys(FILTERS).forEach(function(col){var v=FILTERS[col];if(v)rows=rows.filter(function(r){return colVal(r,col)===v;});});
-  document.querySelectorAll('.filt-ic').forEach(function(ic){var col=ic.getAttribute('data-cf');ic.style.color=FILTERS[col]?'var(--accent)':'';ic.style.fontWeight=FILTERS[col]?'700':'';});
-    document.getElementById('tx-count').textContent=rows.length.toLocaleString()+' transactions';
+  try{var _fk=Object.keys(FILTERS||{});for(var _fi=0;_fi<_fk.length;_fi++){var _fc=_fk[_fi],_fv=FILTERS[_fc];if(_fv)rows=rows.filter(function(r){return colVal(r,_fc)===_fv;});}}catch(e2){}
+  try{var _fi2=document.querySelectorAll('.filt-ic');for(var _i3=0;_i3<_fi2.length;_i3++){var _ic=_fi2[_i3],_col=_ic.getAttribute('data-cf');_ic.style.color=(FILTERS&&FILTERS[_col])?'var(--accent)':'';}}catch(e3){}
+  document.getElementById('tx-count').textContent=rows.length.toLocaleString()+' transactions';
   var total=rows.length,pages=Math.max(1,Math.ceil(total/PAGE));
   if(STATE.page>pages)STATE.page=1;
   document.getElementById('tx-body').innerHTML=rows.slice((STATE.page-1)*PAGE,STATE.page*PAGE).map(function(r){
@@ -488,6 +451,7 @@ function loadData(){
   loadData();
   google.script.run.withSuccessHandler(function(url){var el=document.getElementById('sheet-link');el.href=url;el.style.display='';}).getSheetUrl();
 })();
+document.addEventListener('click',function(e){if(!e||!e.target)return;var d=document.getElementById('cfd');if(!d||d.style.display==='none')return;try{if(d.contains(e.target))return;if(e.target.closest&&e.target.closest('.th-filt'))return;}catch(x){}d.style.display='none';_cfd_col=null;});
 </script>
 </div>
 </body>
