@@ -127,7 +127,6 @@ td{padding:7px 9px;border-bottom:1px solid var(--line);white-space:nowrap;overfl
 <div class="main">
   <div id="loading">Loading data…</div>
   <div id="overview">
-    <div id="view-banner" style="display:none;background:#14532d;color:#fff;font-size:12px;font-weight:700;padding:6px 16px;border-radius:8px;margin-bottom:10px;letter-spacing:.03em"></div>
     <div class="filter-bar" style="margin-bottom:12px">
       <h1>Cash flow <span id="period-label"></span></h1>
       <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">
@@ -626,7 +625,7 @@ function doSync(){
 function loadData(){
   var btn=document.getElementById('sync-btn');
   var token='<?= userToken ?>';if(token==='rob'||token==='frank'){VIEW_PARAM=token;var _vs=document.getElementById('view-sel');if(_vs){_vs.value=token;_vs.style.display='none';}token='';}
-  google.script.run.withSuccessHandler(function(data){ALL=data.rows||[];LIVE_BAL=data.accounts||{};var catMap=JSON.parse(localStorage.getItem('catMap')||'{}');ALL.forEach(function(r){if(r.category==='Payroll & Income'){r.category=r.amount<0?'Payroll':'Income';}var cKey=(r.date||'')+'|'+(r.account||'')+'|'+r.amount;if(catMap[cKey])r.category=catMap[cKey];});document.getElementById('loading').style.display='none';document.getElementById('overview').classList.add('active');(function(){var s=document.getElementById('view-sel');if(s)s.value=VIEW_PARAM;var bn=document.getElementById('view-banner');if(bn){if(VIEW_PARAM==='rob'){bn.textContent='Rob View: Frank accounts hidden';bn.style.display='';}else if(VIEW_PARAM==='frank'){bn.textContent='Frank View: Rob accounts hidden';bn.style.display='';}else bn.style.display='none';}}());(function(){var b=document.getElementById('view-banner');if(!b)return;if(VIEW_PARAM==='rob'){b.textContent='👤 Rob\'s View — Frank\'s accounts hidden';b.style.display='';}else if(VIEW_PARAM==='frank'){b.textContent='👤 Frank\'s View — Rob\'s accounts hidden';b.style.display='';}}());render();btn.disabled=false;btn.innerHTML='🔄 Sync';}).withFailureHandler(function(e){document.getElementById('loading').textContent='Error: '+e.message;btn.disabled=false;btn.innerHTML='🔄 Sync';}).getData(token||null);
+  google.script.run.withSuccessHandler(function(data){ALL=data.rows||[];LIVE_BAL=data.accounts||{};var catMap=JSON.parse(localStorage.getItem('catMap')||'{}');ALL.forEach(function(r){if(r.category==='Payroll & Income'){r.category=r.amount<0?'Payroll':'Income';}var cKey=(r.date||'')+'|'+(r.account||'')+'|'+r.amount;if(catMap[cKey])r.category=catMap[cKey];});document.getElementById('loading').style.display='none';document.getElementById('overview').classList.add('active');render();btn.disabled=false;btn.innerHTML='🔄 Sync';}).withFailureHandler(function(e){document.getElementById('loading').textContent='Error: '+e.message;btn.disabled=false;btn.innerHTML='🔄 Sync';}).getData(token||null);
 }
 (function(){
   var saved=localStorage.getItem('lastSync');if(saved){var s=document.getElementById('sync-status');s.textContent=saved;s.style.color='var(--pos)';}
