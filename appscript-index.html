@@ -410,7 +410,14 @@ function renderAccounts(){
   content.innerHTML=html||'<div style="color:var(--muted);text-align:center;padding:32px">Sync to load account data.</div>';
   var sel=document.getElementById('acct-filter');var cur=sel.value;
   sel.innerHTML='<option value="">All accounts</option>';
-  names.sort().forEach(function(nm){sel.insertAdjacentHTML('beforeend','<option value="'+esc(nm)+'"'+(nm===cur?' selected':'')+'>'+esc(lbl(nm))+'</option>');});
+  Object.entries(groups).forEach(function(ge){
+    var grp=ge[0],accts=ge[1];if(!accts.length)return;
+    var og=document.createElement('optgroup');og.label=grp;
+    accts.slice().sort(function(a,b){return lbl(a).localeCompare(lbl(b));}).forEach(function(nm){
+      var o=document.createElement('option');o.value=nm;o.textContent=lbl(nm);if(nm===cur)o.selected=true;og.appendChild(o);
+    });
+    sel.appendChild(og);
+  });
 }
 var FILTERS={};
 var REC_FILTERS={};
