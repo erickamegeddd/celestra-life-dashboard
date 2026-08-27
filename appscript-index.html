@@ -8,7 +8,7 @@
 <style>
 :root{--bg:#f0f7f0;--panel:#fff;--ink:#162a19;--muted:#4d7a53;--line:#c4dcc6;--accent:#15803d;--accent-soft:#dcfce7;--pos:#15803d;--neg:#dc2626}
 *{box-sizing:border-box;margin:0;padding:0}
-html{background:#d4e8d4;min-height:100%;padding:0;margin:0}body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#d4e8d4;color:var(--ink);font-size:13px;-webkit-font-smoothing:antialiased;padding:0;margin:0}.container{max-width:1040px;margin:0 auto;background:var(--bg);box-shadow:0 0 24px rgba(0,0,0,.10)}
+html{background:#8faa8f;min-height:100%;padding:0;margin:0}body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#8faa8f;color:var(--ink);font-size:13px;-webkit-font-smoothing:antialiased;padding:0;margin:0}.container{max-width:1040px;margin:0 auto;background:var(--bg);box-shadow:0 4px 32px rgba(0,0,0,.25);overflow-x:hidden}
 .topnav{display:flex;align-items:center;padding:0 20px;height:52px;background:#14532d;border-bottom:none;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(20,83,45,.35)}
 .brand{display:flex;align-items:center;gap:9px;font-weight:700;font-size:15px;flex:none;color:#fff}
 .brand .dot{width:20px;height:20px;border-radius:6px;background:linear-gradient(135deg,#15803d,#22c55e)}
@@ -183,48 +183,40 @@ td{padding:7px 9px;border-bottom:1px solid var(--line);white-space:nowrap;overfl
 </div>
 <script>
 var ACCT_LABELS={
-"Individual ...620 (620)":"Charles Schwab Individual (620)",
-"Individual Brokerage -3030 (3030)":"E*Trade Individual Brokerage (3030)",
-"Individual Brokerage -1950 (1950)":"E*Trade Individual Brokerage (1950)",
-"LLC S Corporation -7447 (7447)":"E*Trade LLC S Corporation (7447)",
-"Self-Directed (0146)":"Chase Self-Directed (0146)",
-"Business Gold Card (1007)":"Celestra Amex (1007)",
-"FUL (6576)":"Celestra Chase Checking (6576)",
-"R. SENA (6852)":"Celestra Chase Ink Visa (6852)",
-"Business Gold Card (3000)":"Elm Amex (3000)",
-"Ink (9613)":"Elm Chase Ink Visa (9613)",
-"Elm Incoming (1360)":"Elm Incoming Chase Checking (1360)",
-"Elm Outgoing (1378)":"Elm Outgoing Chase Savings (1378)",
-"Perseverance Cap (8808)":"Perseverance Cap Chase Checking (8808)",
-"Chase Sapphire Reserve (9995)":"Chase Sapphire Reserve Visa (9995)",
-"Ritz Carlton (8588)":"Chase Visa Ritz-Carlton (8588)",
-"Citi®/AAdvantage® Executive World Elite Mastercard (2052)":"Citi AAdvantage MasterCard (2052)",
-"Marriott Bonvoy Brilliant® American Express® Card (1003)":"Marriott Amex (1003)",
 "Moliterno Checking (5930)":"Moliterno Chase Checking (5930)",
 "Moliterno Savings (8787)":"Moliterno Chase Savings (8787)",
-"Business Platinum Card® (2006)":"Moliterno Platinum Amex (2006)",
-"Robert J Sena Check (7095)":"RJS Chase Checking (7095)",
+"Perseverance Cap (8808)":"Perseverance Cap Chase Checking (8808)",
 "RJS Savings (5137)":"RJS Chase Savings (5137)",
-"Venmo":"Venmo",
-"Atmos Rewards Ascent Visa Signature- 8619 (8619)":"Atmos / Alaska Air Visa",
-"Nordstrom retail credit card - 1539 (1539)":"Nordstrom Card",
-"Business Platinum Card® (4005)":"Demilt AmEx",
-"Marriott Bonvoy Brilliant® American Express® Card (1009)":"Marriott AmEx",
-"Savings Account (9225)":"Ally Savings",
-"Demilt Capital Management LLC Francis Sena Non Prototype NFS  PPS Custom (566))":"Commonwealth 401k",
-"Demilt Capital Management LLC Limited Liability Company NFS  PPS Custom (728))":"Commonwealth Brokerage",
-"Individual 3.30% APY (3988)":"Wealthfront",
-"DEMILT PARAMETRIC (3438)":"Merrill Parametric",
-"DEMILT WCMA (3439)":"Merrill WCMA",
-"BTC Wallet (bde7ed9b-34c1-5047-9756-dba7b0d43bb5)":"Nexo BTC Wallet",
-"Citi®/AAdvantage® Executive World Elite Mastercard®-9785 (9785)":"AA Citi Visa",
-"Individual ...340 (340)":"Schwab Brokerage",
-"Investor Checking ...707 (707)":"Schwab Checking",
+"Robert J Sena Check (7095)":"RJS Chase Checking (7095)",
+"R. SENA (6852)":"Celestra Chase Ink Visa (6852)",
+"FUL (6576)":"Celestra Chase Checking (6576)",
+"Ink (9613)":"Elm Chase Ink Visa (9613)",
+"Self-Directed (0146)":"Chase Self-Directed (0146)",
+"Chase Sapphire Reserve (9995)":"Chase Sapphire Reserve Visa (9995)",
+"Elm Incoming (1360)":"Elm Incoming Chase Checking (1360)",
+"Elm Credit Card (3292)":"Elm Credit Card (3292)",
+"Elm Outgoing (1378)":"Elm Outgoing Chase Savings (1378)",
+"F. SENA (6860)":"F. Sena Chase Ink Visa (6860)",
+"Ritz Carlton (8588)":"Chase Visa Ritz-Carlton (8588)",
+"Business Platinum Card® (2006)":"Moliterno Platinum Amex (2006)",
+"Business Gold Card (3000)":"Elm Amex (3000)",
+"Business Gold Card (1007)":"Celestra Amex (1007)",
+"Marriott Bonvoy Brilliant® American Express® Card (1003)":"Marriott Amex (1003)",
+"Citi®/AAdvantage® Executive World Elite Mastercard®-2052 (2052)":"Citi AAdvantage MasterCard (2052)",
+"LLC S Corporation -7447 (7447)":"E*Trade LLC S Corporation (7447)",
+"Individual Brokerage -3030 (3030)":"E*Trade Individual Brokerage (3030)",
+"Individual Brokerage -1950 (1950)":"E*Trade Individual Brokerage (1950)",
+"Individual ...620 (620)":"Charles Schwab Individual (620)",
 "CREDIT CARD (8238)":"Sapphire Preferred",
 "MANAGED BROKERAGE (6469)":"Chase Brokerage",
 "Chase Freedom Unlimited (9575)":"Freedom Unlimited",
 "Personal Savings (0928)":"Chase Savings",
-"Personal Checking (5917)":"Chase Checking"
+"Personal Checking (5917)":"Chase Checking",
+"Amazon CC (5150)":"Frank Amazon Card (5150)",
+"Savings Account (9225)":"Ally Savings",
+"Individual 3.30% APY (3988)":"Wealthfront",
+"DEMILT PARAMETRIC (3438)":"Merrill Parametric",
+"DEMILT WCMA (3439)":"Merrill WCMA"
 };
 function lbl(nm){return ACCT_LABELS[nm]||nm;}
 var ALL=[],LIVE_BAL={},STATE={period:180,account:'',catFilter:null,page:1,customStart:'',customEnd:''};
