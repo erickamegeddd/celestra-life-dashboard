@@ -87,6 +87,11 @@ td{padding:7px 9px;border-bottom:1px solid var(--line);white-space:nowrap;overfl
 .pager{display:flex;gap:8px;align-items:center;margin-top:10px;font-size:12px;color:var(--muted)}
 .pager button{border:1px solid var(--line);background:#fff;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:11px}
 .pager button:disabled{opacity:.4;cursor:not-allowed}
+.date-range-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px;padding:8px 12px;background:var(--accent-soft);border-radius:8px;border:1px solid var(--line)}
+.date-range-row label{font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.04em}
+.date-range-row input[type=date]{border:1px solid var(--line);border-radius:6px;padding:5px 8px;font-size:12px;color:var(--ink);outline:none;background:var(--panel)}
+.date-range-row .clear-btn{font-size:11px;color:var(--neg);background:none;border:none;cursor:pointer;font-weight:700;padding:2px 6px}
+.tgl.range-active{background:var(--accent);color:#fff !important;box-shadow:0 1px 3px rgba(0,0,0,.2)}
 </style>
 </head>
 <body>
@@ -114,6 +119,14 @@ td{padding:7px 9px;border-bottom:1px solid var(--line);white-space:nowrap;overfl
           <button class="tgl" onclick="setPeriod(180,this)">6mo</button>
           <button class="tgl" onclick="setPeriod(365,this)">1yr</button>
           <button class="tgl" onclick="setPeriod(0,this)">All</button>
+          <button class="tgl" id="range-btn" onclick="toggleRangePicker(this)">📅 Range</button>
+        </div>
+        <div class="date-range-row" id="date-range-row" style="display:none">
+          <label>From</label>
+          <input type="date" id="range-start" onchange="applyCustomRange()"/>
+          <label>To</label>
+          <input type="date" id="range-end" onchange="applyCustomRange()"/>
+          <button class="clear-btn" onclick="clearCustomRange()">✕ Clear</button>
         </div>
         <select class="flt" id="acct-filter" onchange="render()"><option value="">All accounts</option></select>
       </div>
@@ -212,7 +225,7 @@ var ACCT_LABELS={
 "Demilt Capital Management LLC Limited Liability Company NFS  PPS Custom (728))":"Commonwealth Brokerage"
 };
 function lbl(nm){return ACCT_LABELS[nm]||nm;}
-var ALL=[],LIVE_BAL={},STATE={period:180,account:'',catFilter:null,page:1};
+var ALL=[],LIVE_BAL={},STATE={period:180,account:'',catFilter:null,page:1,customStart:'',customEnd:''};
 var PAGE=50,barInst=null,donutInst=null;
 var CUSTOM_CATS=JSON.parse(localStorage.getItem('expCats')||'[]');
 var ALL_CATS=['Bank Fees & Interest','Business Income','Credit Card Payments','Dining','Gas & Fuel','Groceries','Healthcare','Insurance','Investment','Marketing & Advertising','Office & Technology','Online Shopping','Other Income','Payroll & Income','Professional Services','Rent & Mortgage','Transfers Out','Travel','Uncategorized/Other'].concat(CUSTOM_CATS);
@@ -222,6 +235,16 @@ function usdK(n){return Math.abs(n)>=1000?'$'+(Math.abs(n)/1000).toFixed(1)+'k':
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function filtered(){
   var cutoff=null;
+  if(STATE.customStart||STATE.customEnd){
+    // Custom range overrides period
+    return ALL.filter(function(r){
+      if(STATE.account&&r.account!==STATE.account)return false;
+      if(STATE.customStart&&r.date<STATE.customStart)return false;
+      if(STATE.customEnd&&r.date>STATE.customEnd)return false;
+      if(STATE.catFilter&&r.category!==STATE.catFilter)return false;
+      return true;
+    });
+  }
   if(STATE.period>0){cutoff=new Date();cutoff.setDate(cutoff.getDate()-STATE.period);}
   return ALL.filter(function(r){
     if(STATE.account&&r.account!==STATE.account)return false;
@@ -230,6 +253,33 @@ function filtered(){
     return true;
   });
 }
+
+function toggleRangePicker(btn){
+  var row=document.getElementById('date-range-row');
+  var showing=row.style.display!=='none';
+  if(showing){clearCustomRange();return;}
+  row.style.display='flex';
+  btn.classList.add('range-active');
+  // Remove 'on' from period buttons
+  document.querySelectorAll('#period-btns .tgl:not(#range-btn)').forEach(function(b){b.classList.remove('on');});
+}
+
+function applyCustomRange(){
+  STATE.customStart=document.getElementById('range-start').value||'';
+  STATE.customEnd=document.getElementById('range-end').value||'';
+  STATE.page=1;
+  render();
+}
+
+function clearCustomRange(){
+  STATE.customStart='';STATE.customEnd='';
+  document.getElementById('range-start').value='';
+  document.getElementById('range-end').value='';
+  document.getElementById('date-range-row').style.display='none';
+  document.getElementById('range-btn').classList.remove('range-active');
+  STATE.page=1;render();
+}
+
 function render(){var rows=filtered();renderKPIs(rows);renderBar(rows);renderDonut(rows);renderAccounts();renderTx();}
 function renderKPIs(rows){
   var spent=0,income=0;
