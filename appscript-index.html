@@ -1,4 +1,4 @@
-(function(){var sel=document.getElementById('view-sel');if(sel)sel.value=VIEW_PARAM;var bn=document.getElementById('view-banner');if(bn){if(VIEW_PARAM==='rob'){bn.textContent='Rob View: Frank accounts hidden';bn.style.display='';}else if(VIEW_PARAM==='frank'){bn.textContent='Frank View: Rob accounts hidden';bn.style.display='';}else bn.style.display='none';}}());<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
 <meta charset="utf-8">
@@ -548,7 +548,7 @@ function editCat(ev,td){
   sel.focus();
 }
 function toggleAG(el){var gid=el.getAttribute('data-gid');var d=document.getElementById(gid);var ch=el.querySelector('span');if(!d)return;var open=d.style.display!=='none';d.style.display=open?'none':'block';if(ch)ch.textContent=open?'▶':'▼';}
-function setView(v){VIEW_PARAM=v;if(v)localStorage.setItem('dashView',v);else localStorage.removeItem('dashView');var s=document.getElementById('view-sel');if(s)s.value=v;var bn=document.getElementById('view-banner');if(bn){if(v==='rob'){bn.textContent='Rob View: Frank accounts hidden';bn.style.display='';}else if(v==='frank'){bn.textContent='Frank View: Rob accounts hidden';bn.style.display='';}else{bn.style.display='none';}}render();}
+function setView(v){VIEW_PARAM=v;if(v)localStorage.setItem('dashView',v);else localStorage.removeItem('dashView');var s=document.getElementById('view-sel');if(s)s.value=v;render();}
 function switchCardTab(tab){
   document.getElementById('tab-tx').style.display=tab==='tx'?'':'none';
   document.getElementById('tab-rec').style.display=tab==='rec'?'':'none';
@@ -623,8 +623,8 @@ function doSync(){
 }
 function loadData(){
   var btn=document.getElementById('sync-btn');
-  var token='<?= userToken ?>';
-  google.script.run.withSuccessHandler(function(data){ALL=data.rows||[];LIVE_BAL=data.accounts||{};var catMap=JSON.parse(localStorage.getItem('catMap')||'{}');ALL.forEach(function(r){if(r.category==='Payroll & Income'){r.category=r.amount<0?'Payroll':'Income';}var cKey=(r.date||'')+'|'+(r.account||'')+'|'+r.amount;if(catMap[cKey])r.category=catMap[cKey];});document.getElementById('loading').style.display='none';document.getElementById('overview').classList.add('active');(function(){var b=document.getElementById('view-banner');if(!b)return;if(VIEW_PARAM==='rob'){b.textContent='👤 Rob\'s View — Frank\'s accounts hidden';b.style.display='';}else if(VIEW_PARAM==='frank'){b.textContent='👤 Frank\'s View — Rob\'s accounts hidden';b.style.display='';}}());render();btn.disabled=false;btn.innerHTML='🔄 Sync';}).withFailureHandler(function(e){document.getElementById('loading').textContent='Error: '+e.message;btn.disabled=false;btn.innerHTML='🔄 Sync';}).getData(token||null);
+  var token='<?= userToken ?>';if(token==='rob'||token==='frank'){VIEW_PARAM=token;var _vs=document.getElementById('view-sel');if(_vs)_vs.value=token;token='';}
+  google.script.run.withSuccessHandler(function(data){ALL=data.rows||[];LIVE_BAL=data.accounts||{};var catMap=JSON.parse(localStorage.getItem('catMap')||'{}');ALL.forEach(function(r){if(r.category==='Payroll & Income'){r.category=r.amount<0?'Payroll':'Income';}var cKey=(r.date||'')+'|'+(r.account||'')+'|'+r.amount;if(catMap[cKey])r.category=catMap[cKey];});document.getElementById('loading').style.display='none';document.getElementById('overview').classList.add('active');(function(){var s=document.getElementById('view-sel');if(s)s.value=VIEW_PARAM;var bn=document.getElementById('view-banner');if(bn){if(VIEW_PARAM==='rob'){bn.textContent='Rob View: Frank accounts hidden';bn.style.display='';}else if(VIEW_PARAM==='frank'){bn.textContent='Frank View: Rob accounts hidden';bn.style.display='';}else bn.style.display='none';}}());(function(){var b=document.getElementById('view-banner');if(!b)return;if(VIEW_PARAM==='rob'){b.textContent='👤 Rob\'s View — Frank\'s accounts hidden';b.style.display='';}else if(VIEW_PARAM==='frank'){b.textContent='👤 Frank\'s View — Rob\'s accounts hidden';b.style.display='';}}());render();btn.disabled=false;btn.innerHTML='🔄 Sync';}).withFailureHandler(function(e){document.getElementById('loading').textContent='Error: '+e.message;btn.disabled=false;btn.innerHTML='🔄 Sync';}).getData(token||null);
 }
 (function(){
   var saved=localStorage.getItem('lastSync');if(saved){var s=document.getElementById('sync-status');s.textContent=saved;s.style.color='var(--pos)';}
