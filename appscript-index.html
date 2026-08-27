@@ -381,6 +381,14 @@ function renderAccounts(){
 }
 var FILTERS={};
 var _cfd_col=null;
+function toast(msg,err){
+  var t=document.createElement('div');
+  t.style.cssText='position:fixed;bottom:20px;right:20px;background:'+(err?'#dc2626':'#15803d')+';color:#fff;padding:8px 14px;border-radius:6px;font-size:12px;z-index:99999;opacity:1;transition:opacity 1s';
+  t.textContent=msg;
+  document.body.appendChild(t);
+  setTimeout(function(){t.style.opacity='0';setTimeout(function(){if(t.parentNode)t.parentNode.removeChild(t);},1000);},2500);
+}
+
 function colVal(r,c){return c==='account'?lbl(r.account):c==='description'?(r.description||r.payee||''):c==='category'?(r.category||''):c==='date'?(r.date||'').slice(0,7):r.amount>=0?'Income':'Expense';}
 function openCF(col,th){
   var d=document.getElementById('cfd');
@@ -486,8 +494,18 @@ function editCat(ev,td){
   ALL_CATS.forEach(function(c){var o=document.createElement('option');o.value=c;o.textContent=c;if(c===cur)o.selected=true;sel.appendChild(o);});
   td.innerHTML='';td.appendChild(sel);
   sel.onclick=function(e){e.stopPropagation();};
-  sel.onchange=function(){var nc=sel.value;td.innerHTML='<span class="tag">'+esc(nc)+'</span><span class="edit-hint">✏</span>';td.setAttribute('data-cat',nc);var row=ALL.find(function(r){return r.id===id;});if(row)row.category=nc;if(id)google.script.run.updateCategory(id,nc);};
-  sel.onblur=function(){td.innerHTML='<span class="tag">'+esc(cur)+'</span><span class="edit-hint">✏</span>';};
+  sel.onchange=function(){
+    var nc=sel.value;
+    td.innerHTML='<span class="tag">'+esc(nc)+'</span><span class="edit-hint">✏</span>';
+    td.setAttribute('data-cat',nc);
+    var row=ALL.find(function(r){return r.id===id;});if(row)row.category=nc;
+    renderDonut(filtered());
+    if(id)google.script.run.withSuccessHandler(function(){toast('Category saved');}).withFailureHandler(function(e){toast('Save failed: '+e.message,true);}).updateCategory(id,nc);
+  };
+  sel.onblur=function(){
+    if(!td.querySelector('select'))return;
+    td.innerHTML='<span class="tag">'+esc(cur)+'</span><span class="edit-hint">✏</span>';
+  };
   sel.focus();
 }
 function toggleCat(c){STATE.catFilter=(STATE.catFilter===c?null:c);render();}
