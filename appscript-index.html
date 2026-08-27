@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+(function(){var sel=document.getElementById('view-sel');if(sel)sel.value=VIEW_PARAM;var bn=document.getElementById('view-banner');if(bn){if(VIEW_PARAM==='rob'){bn.textContent='Rob View: Frank accounts hidden';bn.style.display='';}else if(VIEW_PARAM==='frank'){bn.textContent='Frank View: Rob accounts hidden';bn.style.display='';}else bn.style.display='none';}}());<!DOCTYPE html>
 <html>
 <head>
 <meta charset="utf-8">
@@ -118,6 +118,7 @@ td{padding:7px 9px;border-bottom:1px solid var(--line);white-space:nowrap;overfl
     <a onclick="showView('accounts',this)">🏦 Accounts</a>
   </nav>
   <div class="nav-right">
+    <select id="view-sel" onchange="setView(this.value)" style="font-size:11px;border:1px solid rgba(255,255,255,0.35);background:rgba(0,0,0,0.25);color:#fff;border-radius:6px;padding:4px 8px;cursor:pointer"><option value="">All Accounts</option><option value="rob">Rob's View</option><option value="frank">Frank's View</option></select>
     <button class="sync-btn" id="sync-btn" onclick="doSync()">🔄 Sync</button>
     <span id="sync-status"></span>
     <a class="sheet-link" id="sheet-link" href="#" target="_blank" style="display:none">📊 Open Sheet</a>
@@ -258,7 +259,7 @@ var ACCT_LABELS={
 function lbl(nm){return ACCT_LABELS[nm]||nm;}
 var ALL=[],LIVE_BAL={},STATE={period:180,account:'',catFilter:null,page:1,customStart:'',customEnd:''};
 var SORT={col:null,dir:1};
-var VIEW_PARAM=(function(){try{var h=window.location.hash||'';var m=h.match(/[#&]view=([^&]*)/i);return m?m[1].toLowerCase():'';}catch(e){return'';}})();
+var VIEW_PARAM=localStorage.getItem('dashView')||'';
 var FRANK_KEYS=['8238','6469','9575','0928','5917','5150','8619','1539','4005','1009','9225','566','728','3988','3438','3439','9785','340','707'];
 function isFrankAcct(nm){var n=(nm||'').toLowerCase();for(var i=0;i<FRANK_KEYS.length;i++){if(n.indexOf('('+FRANK_KEYS[i]+')')!==-1)return true;}return false;}
 var PAGE=50,barInst=null,donutInst=null,recChartInst=null;
@@ -547,6 +548,7 @@ function editCat(ev,td){
   sel.focus();
 }
 function toggleAG(el){var gid=el.getAttribute('data-gid');var d=document.getElementById(gid);var ch=el.querySelector('span');if(!d)return;var open=d.style.display!=='none';d.style.display=open?'none':'block';if(ch)ch.textContent=open?'▶':'▼';}
+function setView(v){VIEW_PARAM=v;if(v)localStorage.setItem('dashView',v);else localStorage.removeItem('dashView');var s=document.getElementById('view-sel');if(s)s.value=v;var bn=document.getElementById('view-banner');if(bn){if(v==='rob'){bn.textContent='Rob View: Frank accounts hidden';bn.style.display='';}else if(v==='frank'){bn.textContent='Frank View: Rob accounts hidden';bn.style.display='';}else{bn.style.display='none';}}render();}
 function switchCardTab(tab){
   document.getElementById('tab-tx').style.display=tab==='tx'?'':'none';
   document.getElementById('tab-rec').style.display=tab==='rec'?'':'none';
@@ -554,7 +556,7 @@ function switchCardTab(tab){
   document.getElementById('tabbtn-rec').className='tab-btn'+(tab==='rec'?' active':'');
   if(tab==='rec')renderRecurring();
 }
-function normVendor(s){return(s||'').replace(/\b\d{5,}\b/g,'').replace(/[_#*|]+/g,' ').replace(/\s{2,}/g,' ').trim().toLowerCase();}
+function normVendor(s){return(s||'').replace(/\sto\s\S+/gi,'').replace(/\b[\dX#]+\b/g,'').replace(/[_#*|]+/g,' ').replace(/\s{2,}/g,' ').trim().toLowerCase();}
 function renderRecurring(){
   var mNames=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   function moLabel(m){var p=m.split('-');return mNames[parseInt(p[1],10)-1]+' \''+p[0].slice(2);}
