@@ -93,9 +93,8 @@ td{padding:7px 9px;border-bottom:1px solid var(--line);white-space:nowrap;overfl
 .date-range-row .clear-btn{font-size:11px;color:var(--neg);background:none;border:none;cursor:pointer;font-weight:700;padding:2px 6px}
 .tgl.range-active{background:var(--accent);color:#fff !important;box-shadow:0 1px 3px rgba(0,0,0,.2)}
 </style>
-<!-- built:2026-08-27-03h --><style>.th-filt{cursor:pointer;user-select:none}.th-filt:hover{color:var(--accent)}#cfd{display:none;position:fixed;background:#fff;border:1px solid var(--line);border-radius:6px;box-shadow:0 4px 18px rgba(0,0,0,.2);z-index:9999;max-height:260px;overflow-y:auto;min-width:160px}.cfi{padding:6px 13px;font-size:12px;cursor:pointer;white-space:nowrap}.cfi:hover{background:var(--accent-soft)}.cfi-sel{color:var(--accent);font-weight:700}</style></head>
+<!-- built:2026-08-27-03h --></head>
 <body>
-<div id="cfd"></div>
 <div class="container">
 <div class="topnav">
   <div class="brand"><span class="dot"></span> Expense Dashboard</div>
@@ -172,7 +171,7 @@ td{padding:7px 9px;border-bottom:1px solid var(--line);white-space:nowrap;overfl
         <span id="tx-count" style="color:var(--muted);font-size:11px;margin-left:auto"></span>
       </div>
       <div style="overflow-x:auto"><table><thead><tr>
-        <th class="th-filt" onclick="openCF('date',this)">Date &#9660;</th><th class="th-filt" onclick="openCF('account',this)">Account &#9660;</th><th class="th-filt" onclick="openCF('description',this)">Description &#9660;</th><th class="th-filt" onclick="openCF('category',this)">Category &#9660;</th><th class="th-filt right" onclick="openCF('amount',this)">Amount &#9660;</th>
+        <th onclick="sortBy('date')" style="cursor:pointer;user-select:none">Date <span id="sort-date" style="color:var(--accent)"></span></th><th onclick="sortBy('account')" style="cursor:pointer;user-select:none">Account <span id="sort-account" style="color:var(--accent)"></span></th><th onclick="sortBy('description')" style="cursor:pointer;user-select:none">Description <span id="sort-description" style="color:var(--accent)"></span></th><th onclick="sortBy('category')" style="cursor:pointer;user-select:none">Category <span id="sort-category" style="color:var(--accent)"></span></th><th class="right" onclick="sortBy('amount')" style="cursor:pointer;user-select:none">Amount <span id="sort-amount" style="color:var(--accent)"></span></th>
       </tr></thead><tbody id="tx-body"></tbody></table></div>
       <div class="pager" id="pager"></div>
     </div>
@@ -231,6 +230,7 @@ var ACCT_LABELS={
 };
 function lbl(nm){return ACCT_LABELS[nm]||nm;}
 var ALL=[],LIVE_BAL={},STATE={period:180,account:'',catFilter:null,page:1,customStart:'',customEnd:''};
+var SORT={col:null,dir:1};
 var PAGE=50,barInst=null,donutInst=null;
 var CUSTOM_CATS=JSON.parse(localStorage.getItem('expCats')||'[]');
 var ALL_CATS=['Bank Fees & Interest','Business Income','Credit Card Payments','Dining','Gas & Fuel','Groceries','Healthcare','Insurance','Investment','Marketing & Advertising','Office & Technology','Online Shopping','Other Income','Payroll & Income','Professional Services','Rent & Mortgage','Transfers Out','Travel','Uncategorized/Other'].concat(CUSTOM_CATS);
@@ -378,27 +378,6 @@ function renderAccounts(){
   sel.innerHTML='<option value="">All accounts</option>';
   names.sort().forEach(function(nm){sel.insertAdjacentHTML('beforeend','<option value="'+esc(nm)+'"'+(nm===cur?' selected':'')+'>'+esc(lbl(nm))+'</option>');});
 }
-var FILTERS={};
-var _cfd_col=null;
-function colVal(r,col){if(col==='account')return lbl(r.account);if(col==='description')return r.description||r.payee||'';if(col==='category')return r.category||'';if(col==='date')return r.date?r.date.slice(0,7):'';return r.amount>=0?'Income':'Expense';}
-function openCF(col,th){
-  var d=document.getElementById('cfd');
-  if(_cfd_col===col&&d.style.display!=='none'){d.style.display='none';_cfd_col=null;return;}
-  _cfd_col=col;
-  var vals=[];
-  ALL.forEach(function(r){var v=colVal(r,col);if(v&&vals.indexOf(v)<0)vals.push(v);});
-  vals.sort();
-  var h='<div class="cfi" onclick="closeCF()"><em style="color:#888">&#10006; Close</em></div><div class="cfi" onclick="setCF(''+col+'',null)"><em style="color:#888">&#8212; Show all &#8212;</em></div>';
-  vals.forEach(function(v){var s=FILTERS[col]===v;h+='<div class="cfi'+(s?' cfi-sel':'')+'" onclick="setCF(''+col+'','+JSON.stringify(v)+')">'+esc(v)+'</div>';});
-  d.innerHTML=h;
-  var r=th.getBoundingClientRect();
-  d.style.left=r.left+'px';
-  d.style.top=(r.bottom+2)+'px';
-  d.style.display='block';
-}
-function setCF(col,val){if(val===null)delete FILTERS[col];else FILTERS[col]=val;closeCF();STATE.page=1;render();}
-function closeCF(){var d=document.getElementById('cfd');if(d)d.style.display='none';_cfd_col=null;}
-
 function renderTx(){
   var rows=filtered();
   var ds=document.getElementById('d-start').value,de=document.getElementById('d-end').value;
@@ -413,7 +392,8 @@ function renderTx(){
     var names=Array.from(new Set(ALL.map(function(r){return r.account;}))).sort();
     names.forEach(function(nm){var o=document.createElement('option');o.value=nm;o.textContent=lbl(nm);ta.appendChild(o);});
   }
-  var _fks=Object.keys(FILTERS||{});for(var _i=0;_i<_fks.length;_i++){var _c=_fks[_i],_v=FILTERS[_c];if(_v){var _cv=_c;rows=rows.filter(function(r){return colVal(r,_cv)===_v;});}}
+  ['date','account','description','category','amount'].forEach(function(c){var el=document.getElementById('sort-'+c);if(el)el.textContent=SORT.col===c?(SORT.dir===1?'\u25b2':'\u25bc'):'';});
+  if(SORT.col){rows=rows.slice().sort(function(a,b){var av,bv;if(SORT.col==='date'){av=a.date;bv=b.date;}else if(SORT.col==='account'){av=lbl(a.account).toLowerCase();bv=lbl(b.account).toLowerCase();}else if(SORT.col==='description'){av=(a.description||a.payee||'').toLowerCase();bv=(b.description||b.payee||'').toLowerCase();}else if(SORT.col==='category'){av=(a.category||'').toLowerCase();bv=(b.category||'').toLowerCase();}else{av=a.amount;bv=b.amount;}if(av<bv)return -SORT.dir;if(av>bv)return SORT.dir;return 0;});}
   document.getElementById('tx-count').textContent=rows.length.toLocaleString()+' transactions';
   var total=rows.length,pages=Math.max(1,Math.ceil(total/PAGE));
   if(STATE.page>pages)STATE.page=1;
@@ -425,6 +405,8 @@ function renderTx(){
   }).join('');
   document.getElementById('pager').innerHTML='<button '+(STATE.page<=1?'disabled':'')+' onclick="STATE.page--;renderTx()">‹ Prev</button><span>Page '+STATE.page+' of '+pages+' ('+total.toLocaleString()+')</span><button '+(STATE.page>=pages?'disabled':'')+' onclick="STATE.page++;renderTx()">Next ›</button>';
 }
+function sortBy(col){if(SORT.col===col){SORT.dir*=-1;}else{SORT.col=col;SORT.dir=1;}STATE.page=1;renderTx();}
+
 function editCat(ev,td){
   ev.stopPropagation();if(td.querySelector('select'))return;
   var cur=td.getAttribute('data-cat')||'',id=td.getAttribute('data-id')||'';
