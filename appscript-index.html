@@ -413,6 +413,8 @@ function renderAccounts(){
   names.sort().forEach(function(nm){sel.insertAdjacentHTML('beforeend','<option value="'+esc(nm)+'"'+(nm===cur?' selected':'')+'>'+esc(lbl(nm))+'</option>');});
 }
 var FILTERS={};
+var REC_FILTERS={};
+var _recVendors=[];
 var _cfd_col=null;
 function toast(msg,err){
   var t=document.createElement('div');
@@ -550,6 +552,34 @@ function editCat(ev,td){
 }
 function toggleAG(el){var gid=el.getAttribute('data-gid');var d=document.getElementById(gid);var ch=el.querySelector('span');if(!d)return;var open=d.style.display!=='none';d.style.display=open?'none':'block';if(ch)ch.textContent=open?'▶':'▼';}
 function setView(v){VIEW_PARAM=v;if(v)localStorage.setItem('dashView',v);else localStorage.removeItem('dashView');var s=document.getElementById('view-sel');if(s)s.value=v;render();}
+function openRecCF(col,th){
+  var d=document.getElementById('cfd');
+  if(_cfd_col==='rec:'+col&&d.style.display!=='none'){d.style.display='none';_cfd_col=null;return;}
+  _cfd_col='rec:'+col;
+  var vals=[];
+  _recVendors.forEach(function(v){var val=col==='vendor'?v.display:v.category;if(val&&vals.indexOf(val)<0)vals.push(val);});
+  vals.sort();
+  var rkey='rec:'+col;
+  var h='<input class="cfd-search" placeholder="Type to search..." oninput="filterCFD(this)">';
+  h+='<div class="cfi cfi-all" data-col="'+rkey+'"><em>\u2014 Show all \u2014</em></div>';
+  vals.forEach(function(v){var s=REC_FILTERS[col]===v;h+='<div class="cfi'+(s?' cfi-sel':'')+'" data-col="'+rkey+'" data-val="'+esc(v)+'">'+esc(v)+'</div>';});
+  d.innerHTML=h;
+  setTimeout(function(){var inp=d.querySelector('.cfd-search');if(inp)inp.focus();},30);
+  d.onclick=function(e){
+    var item=e.target.closest?e.target.closest('.cfi'):e.target;
+    if(!item||!item.classList||!item.classList.contains('cfi'))return;
+    var c=item.getAttribute('data-col').replace('rec:','');
+    var v=item.classList.contains('cfi-all')?null:item.getAttribute('data-val');
+    setRecCF(c,v);
+  };
+  var r=th.getBoundingClientRect();
+  d.style.left=r.left+'px';d.style.top=(r.bottom+2)+'px';d.style.display='block';
+}
+function setRecCF(col,val){
+  if(val===null)delete REC_FILTERS[col];else REC_FILTERS[col]=val;
+  var d=document.getElementById('cfd');if(d)d.style.display='none';_cfd_col=null;
+  renderRecurring();
+}
 function switchCardTab(tab){
   document.getElementById('tab-tx').style.display=tab==='tx'?'':'none';
   document.getElementById('tab-rec').style.display=tab==='rec'?'':'none';
@@ -570,13 +600,17 @@ function renderRecurring(){
   var vmap={};
   rows.forEach(function(r){
     var key=normVendor(r.description||r.payee||'');if(!key)return;
-    if(!vmap[key]){vmap[key]={display:(r.description||r.payee||'').trim(),category:r.category||'',months:{},total:0};}
+    if(!vmap[key]){var _raw=(r.description||r.payee||'').trim();var _disp=_raw.replace(/\s+to\s+\S+/gi,'').replace(/\b[\dX#]{4,}\b/g,'').replace(/\s{2,}/g,' ').trim();vmap[key]={display:_disp||_raw,category:r.category||'',months:{},total:0};}
     var mo=(r.date||'').slice(0,7);
     vmap[key].months[mo]=(vmap[key].months[mo]||0)+(-r.amount);
     vmap[key].total+=(-r.amount);
   });
   var recurring=Object.values(vmap).filter(function(v){return Object.keys(v.months).length>=2;});
   recurring.sort(function(a,b){return b.total-a.total;});
+  if(STATE.catFilter)recurring=recurring.filter(function(v){return v.category===STATE.catFilter;});
+  if(REC_FILTERS.vendor)recurring=recurring.filter(function(v){return v.display===REC_FILTERS.vendor;});
+  if(REC_FILTERS.category)recurring=recurring.filter(function(v){return v.category===REC_FILTERS.category;});
+  _recVendors=recurring.slice();
   var moSet={};recurring.forEach(function(v){Object.keys(v.months).forEach(function(mo){moSet[mo]=1;});});
   var months=Object.keys(moSet).sort();
   var totalRec=recurring.reduce(function(s,v){return s+v.total;},0);
@@ -600,7 +634,7 @@ function renderRecurring(){
   if(!recurring.length){tbl.innerHTML='<tr><td style="padding:20px;color:var(--muted);text-align:center">No recurring charges found in this period.</td></tr>';return;}
   var moTotals={};months.forEach(function(mo){moTotals[mo]=0;});
   recurring.forEach(function(v){months.forEach(function(mo){moTotals[mo]+=(v.months[mo]||0);});});
-  var thead='<thead><tr><th>Vendor</th><th>Category</th>'+months.map(function(mo){return'<th class="r">'+moLabel(mo)+'</th>';}).join('')+'<th class="r">Avg/mo</th><th class="r">Total</th></tr></thead>';
+  var thead='<thead><tr><th onclick="openRecCF(\"vendor\",this)" style="cursor:pointer">Vendor</th><th onclick="openRecCF(\"category\",this)" style="cursor:pointer">Category</th>'+months.map(function(mo){return'<th class="r">'+moLabel(mo)+'</th>';}).join('')+'<th class="r">Avg/mo</th><th class="r">Total</th></tr></thead>';
   var tbody='<tbody>'+recurring.map(function(v){
     var avg=v.total/Object.keys(v.months).length;
     var moCells=months.map(function(mo){var a=v.months[mo]||0;return a?'<td class="r"><span class="rec-amt">'+usdAbs(a)+'</span></td>':'<td class="r" style="color:var(--muted)">—</td>';});
