@@ -11,7 +11,7 @@
 html{background:#8faa8f;min-height:100%;padding:0;margin:0}body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#8faa8f;color:var(--ink);font-size:13px;-webkit-font-smoothing:antialiased;padding:0;margin:0}.container{max-width:1280px;margin:0 auto;background:var(--bg);box-shadow:0 4px 32px rgba(0,0,0,.25);overflow-x:hidden}
 .topnav{display:flex;align-items:center;padding:0 20px;height:52px;background:#14532d;border-bottom:none;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(20,83,45,.35)}
 .brand{display:flex;align-items:center;gap:9px;font-weight:700;font-size:15px;flex:none;color:#fff}
-.brand .dot{width:20px;height:20px;border-radius:6px;background:linear-gradient(135deg,#15803d,#22c55e)}
+.brand .dot{display:none}
 .nav{display:flex;flex:1;margin-left:16px;gap:0}
 .nav a{padding:0 13px;height:52px;display:flex;align-items:center;font-weight:600;color:rgba(255,255,255,0.7);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;text-decoration:none}
 .nav a.active,.nav a:hover{color:#fff;border-bottom-color:#fff}
@@ -98,7 +98,7 @@ td{padding:7px 9px;border-bottom:1px solid var(--line);white-space:nowrap;overfl
 <div id="cfd"></div>
 <div class="container">
 <div class="topnav">
-  <div class="brand"><span class="dot"></span> Expense Dashboard</div>
+  <div class="brand"><img src="https://celestra-life-dashboard-ericka3.vercel.app/dollar-logo.png" width="22" height="22" style="object-fit:contain;filter:brightness(0) invert(1);flex:none"> Expense Dashboard</div>
   <nav class="nav">
     <a class="active" onclick="showView('overview',this)">📊 Overview</a>
     <a onclick="showView('accounts',this)">🏦 Accounts</a>
