@@ -561,7 +561,12 @@ function normVendor(s){return(s||'').replace(/\sto\s\S+/gi,'').replace(/\b[\dX#]
 function renderRecurring(){
   var mNames=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   function moLabel(m){var p=m.split('-');return mNames[parseInt(p[1],10)-1]+' \''+p[0].slice(2);}
-  var rows=filtered().filter(function(r){return r.amount<0;});
+  var rows=ALL.filter(function(r){
+    if(r.amount>=0)return false;
+    if(VIEW_PARAM==='rob'&&isFrankAcct(r.account))return false;
+    if(VIEW_PARAM==='frank'&&!isInNamedGroup(r.account))return false;
+    return true;
+  });
   var vmap={};
   rows.forEach(function(r){
     var key=normVendor(r.description||r.payee||'');if(!key)return;
