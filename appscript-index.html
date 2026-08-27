@@ -398,10 +398,10 @@ function renderTypeSplit(accts){
   if(brokers.length){html+='<div class="acct-type-label">📈 Brokerage & Savings</div><div class="acct-grid">';brokers.forEach(function(nm){html+=card(nm);});html+='</div>';}
   return html;
 }
+var ACCT_GROUPS={'Perseverance':['8808'],'PayDiverse/Elm':['3000','9613','1360','1378','3292'],'Celestra/Fortuna':['1007','6576','6852','6860'],'Frank Personal':['8238','6469','9575','0928','5917','5150','8619','1539','4005','1009','9225','566','728','3988','3438','3439','9785','340','707']};
 function getGroup(nm){var n=nm.toLowerCase();for(var g in ACCT_GROUPS){var keys=ACCT_GROUPS[g];for(var i=0;i<keys.length;i++){if(n.indexOf('('+keys[i]+')')!==-1)return g;}}return"Rob's Personal";}
 function renderAccounts(){
   var content=document.getElementById('acct-content');if(!content)return;
-  var ACCT_GROUPS={'Perseverance':['8808'],'PayDiverse/Elm':['3000','9613','1360','1378','3292'],'Celestra/Fortuna':['1007','6576','6852','6860'],'Frank Personal':['8238','6469','9575','0928','5917','5150','8619','1539','4005','1009','9225','566','728','3988','3438','3439','9785','340','707']};
   var groups={"Rob's Personal":[],'Perseverance':[],'PayDiverse/Elm':[],'Celestra/Fortuna':[],'Frank Personal':[]};
   var names=Object.keys(LIVE_BAL);if(!names.length)names=Object.keys((function(){var m={};ALL.forEach(function(r){m[r.account]=1;});return m;})());
   names.forEach(function(nm){if(VIEW_PARAM==='rob'&&isFrankAcct(nm))return;if(VIEW_PARAM==='frank'&&!isInNamedGroup(nm))return;var g=getGroup(nm);if(!groups[g])groups[g]=[];groups[g].push(nm);});
