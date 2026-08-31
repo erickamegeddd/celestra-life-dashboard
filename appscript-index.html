@@ -609,7 +609,6 @@ function renderRecurring(){
   var mNames=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   function moLabel(m){var p=m.split('-');return mNames[parseInt(p[1],10)-1]+' \''+p[0].slice(2);}
   var rows=ALL.filter(function(r){
-    if(r.amount>=0)return false;
     if(VIEW_PARAM==='rob'&&isFrankAcct(r.account))return false;
     if(VIEW_PARAM==='frank'&&!isInNamedGroup(r.account))return false;
     if(STATE.account){if(STATE.account.indexOf('__grp__')===0){if(getGroup(r.account)!==STATE.account.slice(7))return false;}else{if(r.account!==STATE.account)return false;}}
@@ -620,8 +619,8 @@ function renderRecurring(){
     var key=normVendor(r._origDesc||r.description||r.payee||'');if(!key)return;
     if(!vmap[key]){var _raw=(r._origDesc||r.description||r.payee||'').trim();var _disp=_raw.replace(/\b[X]+[\dX]+\b/g,'').replace(/\b\d{5,}\b/g,'').replace(/[_]+/g,' ').replace(/\s{2,}/g,' ').trim();vmap[key]={display:_disp||_raw,category:r.category||'',months:{},total:0};}
     var mo=(r.date||'').slice(0,7);
-    vmap[key].months[mo]=(vmap[key].months[mo]||0)+(-r.amount);
-    vmap[key].total+=(-r.amount);
+    vmap[key].months[mo]=(vmap[key].months[mo]||0)+Math.abs(r.amount);
+    vmap[key].total+=Math.abs(r.amount);
   });
   var recurring=Object.values(vmap).filter(function(v){return Object.keys(v.months).length>=2;});
   recurring.sort(function(a,b){return b.total-a.total;});
