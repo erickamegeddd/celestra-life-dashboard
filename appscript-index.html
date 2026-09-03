@@ -40,7 +40,7 @@ select.flt{appearance:none;border:1px solid var(--line);background:#fff;border-r
 .row2{display:grid;grid-template-columns:1fr 1.2fr;gap:12px;margin-bottom:14px}
 .chartbox{position:relative;height:220px}
 .donutwrap{display:flex;gap:12px;align-items:center}
-.donutbox{position:relative;width:140px;height:140px;flex:none}
+.donutbox{position:relative;width:120px;height:120px;flex:none}
 .donut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none}
 .donut-center small{color:var(--muted);font-size:9px;font-weight:700;text-transform:uppercase}
 .donut-center b{font-size:16px;font-weight:700}
@@ -174,6 +174,13 @@ td{padding:7px 9px;border-bottom:1px solid var(--line);white-space:nowrap;overfl
             </div>
           </div>
         </div>
+        <div style="border-top:1px solid var(--line);margin-top:12px;padding-top:10px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b style="font-size:13px">Income by category</b></div>
+          <div class="donutwrap">
+            <div class="donutbox"><canvas id="donut2"></canvas><div class="donut-center"><small>Income</small><b id="donut2-total">$0</b></div></div>
+            <div class="legend" id="legend2"></div>
+          </div>
+        </div>
       </div>
     </div>
     <div class="card" style="margin-top:4px">
@@ -264,7 +271,7 @@ var FRANK_KEYS=['8238','6469','9575','0928','5917','5150','8619','1539','4005','
 function isFrankAcct(nm){var n=(nm||'').toLowerCase();for(var i=0;i<FRANK_KEYS.length;i++){if(n.indexOf('('+FRANK_KEYS[i]+')')!==-1)return true;}return false;}
 var ALL_NAMED_KEYS=['8808','3000','9613','1360','1378','3292','1007','6576','6852','6860','8238','6469','9575','0928','5917','5150','8619','1539','4005','1009','9225','566','728','3988','3438','3439','9785','340','707'];
 function isInNamedGroup(nm){var n=(nm||'').toLowerCase();for(var i=0;i<ALL_NAMED_KEYS.length;i++){if(n.indexOf('('+ALL_NAMED_KEYS[i]+')')!==-1)return true;}return false;}
-var PAGE=50,barInst=null,donutInst=null,recChartInst=null;
+var PAGE=50,barInst=null,donutInst=null,donut2Inst=null,recChartInst=null;
 var CUSTOM_CATS=JSON.parse(localStorage.getItem('expCats')||'[]');
 var ALL_CATS=['Bank Fees & Interest','Business Income','Credit Card Payments','Dining','Gas & Fuel','Groceries','Healthcare','Insurance','Investment','Marketing & Advertising','Office & Technology','Online Shopping','Other Income','Payroll','Income','Professional Services','Rent & Mortgage','Transfers Out','Travel','Uncategorized/Other'].concat(CUSTOM_CATS);
 var COLORS=['#15803d','#ef4444','#f59e0b','#3b82f6','#8b5cf6','#ec4899','#14b8a6','#f97316','#84cc16','#06b6d4','#a855f7','#64748b','#0ea5e9','#d946ef','#22c55e','#eab308','#6366f1'];
@@ -320,7 +327,7 @@ function clearCustomRange(){
   STATE.page=1;render();
 }
 
-function render(){var rows=filtered();renderKPIs(rows);renderBar(rows);renderDonut(rows);renderAccounts();renderTx();var tr=document.getElementById('tab-rec');if(tr&&tr.style.display!=='none')renderRecurring();}
+function render(){var rows=filtered();renderKPIs(rows);renderBar(rows);renderDonut(rows);renderIncomeDonut(rows);renderAccounts();renderTx();var tr=document.getElementById('tab-rec');if(tr&&tr.style.display!=='none')renderRecurring();}
 function renderKPIs(rows){
   var spent=0,income=0;
   rows.forEach(function(r){if(r.amount<0)spent+=r.amount;else income+=r.amount;});
@@ -369,6 +376,25 @@ function renderDonut(rows){
     var on=STATE.catFilter===e[0]?'style="background:var(--bg)"':'';
     var ce=esc(e[0]);
     return'<div class="lrow" '+on+' onclick="toggleCat(\''+ce.replace(/'/g,"\\'")+'\')"><span class="sw" style="background:'+COLORS[i%COLORS.length]+'"></span><span class="nm">'+ce+'</span><span class="amt">'+usdAbs(e[1])+'</span><span class="pct">'+pct+'%</span><span class="edit-hint" onclick="event.stopPropagation();editLegendCat(this,\''+ce.replace(/'/g,"\\'")+'\')">✏</span></div>';
+  }).join('');
+}
+function renderIncomeDonut(rows){
+  var inc=rows.filter(function(r){return r.amount>0&&r.category;});
+  var total=inc.reduce(function(s,r){return s+r.amount;},0);
+  var map={};inc.forEach(function(r){map[r.category]=(map[r.category]||0)+r.amount;});
+  var entries=Object.entries(map).sort(function(a,b){return b[1]-a[1];});
+  var labels=entries.map(function(e){return e[0];});
+  var cols=labels.map(function(_,i){return COLORS[i%COLORS.length];});
+  document.getElementById('donut2-total').textContent=usdK(total);
+  var ctx=document.getElementById('donut2');
+  if(donut2Inst)donut2Inst.destroy();
+  donut2Inst=new Chart(ctx,{type:'doughnut',data:{labels:labels,datasets:[{data:entries.map(function(e){return e[1];}),backgroundColor:cols,borderWidth:2,borderColor:'#fff',cutout:'70%'}]},
+    options:{maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return c.label+': '+usdAbs(c.parsed)+' ('+Math.round(c.parsed/total*100)+'%)';}}}}}});
+  var leg2=document.getElementById('legend2');
+  leg2.innerHTML=entries.map(function(e,i){
+    var pct=total?Math.round(e[1]/total*100):0;
+    var ce=esc(e[0]);
+    return'<div class="lrow"><span class="sw" style="background:'+COLORS[i%COLORS.length]+'"></span><span class="nm">'+ce+'</span><span class="amt">'+usdK(e[1])+'</span><span class="pct">'+pct+'%</span></div>';
   }).join('');
 }
 function getAccountType(nm){
