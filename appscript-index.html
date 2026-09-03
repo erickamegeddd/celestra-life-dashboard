@@ -217,6 +217,10 @@ td{padding:7px 9px;border-bottom:1px solid var(--line);white-space:nowrap;overfl
       <div class="pager" id="pager"></div>
       </div>
       <div id="tab-rec" style="display:none">
+        <div class="ledger-controls" style="margin-bottom:12px">
+          <b style="font-size:13px">Recurring Charges</b>
+          <select id="rec-acct-filter" class="flt" onchange="REC_ACCT=this.value;renderRecurring()" style="font-size:11px;padding:4px 20px 4px 7px"><option value="">All accounts</option></select>
+        </div>
         <div class="rec-kpis" id="rec-kpis"></div>
         <div style="position:relative;height:180px;margin-bottom:14px"><canvas id="recChart"></canvas></div>
         <div style="overflow-x:auto"><table id="rec-table"></table></div>
@@ -497,7 +501,7 @@ function renderAccounts(){
 }
 var FILTERS={};
 var REC_FILTERS={};
-var REC_SORT={col:'total',dir:-1};
+var REC_SORT={col:'total',dir:-1};var REC_ACCT='';
 function sortRec(col){if(REC_SORT.col===col)REC_SORT.dir*=-1;else{REC_SORT.col=col;REC_SORT.dir=1;}renderRecurring();}
 function recSortArrow(col){return REC_SORT.col===col?(REC_SORT.dir===1?'▲':'▼'):'';}
 var _recVendors=[];
@@ -725,10 +729,28 @@ function renderRecurring(){
   var mNames=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   function moLabel(m){var p=m.split('-');return mNames[parseInt(p[1],10)-1]+' \''+p[0].slice(2);}
   var _incCats=['Payroll','Income','Business Income','Other Income'];
+  // Populate rec account filter dropdown (once, grouped)
+  (function(){
+    var sel=document.getElementById('rec-acct-filter');if(!sel||sel.options.length>1)return;
+    var _ra=Array.from(new Set(ALL.filter(function(r){
+      if(VIEW_PARAM==='rob'&&getGroup(r.account)==='Frank Personal')return false;
+      if(VIEW_PARAM==='frank'&&getGroup(r.account)==="Rob's Personal")return false;
+      return true;
+    }).map(function(r){return r.account||''}))).filter(Boolean);
+    var _rg={};_ra.forEach(function(nm){var g=getGroup(nm);if(!_rg[g])_rg[g]=[];_rg[g].push(nm);});
+    Object.keys(_rg).forEach(function(grp){
+      var accts=_rg[grp];if(!accts.length)return;
+      var og=document.createElement('optgroup');og.label=grp;
+      var go=document.createElement('option');go.value='__grp__'+grp;go.textContent='All '+grp;og.appendChild(go);
+      accts.slice().sort(function(a,b){return lbl(a).localeCompare(lbl(b));}).forEach(function(nm){var o=document.createElement('option');o.value=nm;o.textContent=lbl(nm);og.appendChild(o);});
+      sel.appendChild(og);
+    });
+    if(REC_ACCT)sel.value=REC_ACCT;
+  })();
   var rows=ALL.filter(function(r){
     if(VIEW_PARAM==='rob'&&getGroup(r.account)==='Frank Personal')return false;
     if(VIEW_PARAM==='frank'&&getGroup(r.account)==="Rob's Personal")return false;
-    if(STATE.account){if(STATE.account.indexOf('__grp__')===0){if(getGroup(r.account)!==STATE.account.slice(7))return false;}else{if(r.account!==STATE.account)return false;}}
+    if(REC_ACCT){if(REC_ACCT.indexOf('__grp__')===0){if(getGroup(r.account)!==REC_ACCT.slice(7))return false;}else{if(r.account!==REC_ACCT)return false;}}
     if(_incCats.indexOf(r.category||'')!==-1)return false;
     return true;
   });
