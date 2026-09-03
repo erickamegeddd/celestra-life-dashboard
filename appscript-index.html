@@ -6,10 +6,10 @@
 <title>Expense Dashboard</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
-:root{--bg:#f0f7f0;--panel:#fff;--ink:#162a19;--muted:#4d7a53;--line:#c4dcc6;--accent:#15803d;--accent-soft:#dcfce7;--pos:#15803d;--neg:#dc2626}
+:root{--bg:#f0f4f8;--panel:#fff;--ink:#162233;--muted:#4d6a8a;--line:#c4d4e0;--accent:#1565c0;--accent-soft:#dceaf7;--pos:#15803d;--neg:#dc2626}
 *{box-sizing:border-box;margin:0;padding:0}
 html{background:#8aaabf;min-height:100%;padding:0;margin:0}body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#8aaabf;color:var(--ink);font-size:13px;-webkit-font-smoothing:antialiased;padding:0;margin:0}.container{max-width:1280px;margin:0 auto;background:var(--bg);box-shadow:0 4px 32px rgba(0,0,0,.25);overflow-x:hidden}
-.topnav{display:flex;align-items:center;padding:0 20px;height:52px;background:#14532d;border-bottom:none;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(20,83,45,.35)}
+.topnav{display:flex;align-items:center;padding:0 20px;height:52px;background:#1a4a7a;border-bottom:none;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(26,74,122,.35)}
 .brand{display:flex;align-items:center;gap:9px;font-weight:700;font-size:15px;flex:none;color:#fff}
 .brand .dot{display:none}
 .nav{display:flex;flex:1;margin-left:16px;gap:0}
@@ -32,7 +32,7 @@ html{background:#8aaabf;min-height:100%;padding:0;margin:0}body{font-family:-app
 .tgl.on{background:var(--panel);color:var(--accent);box-shadow:0 1px 3px rgba(0,0,0,.1)}
 select.flt{appearance:none;border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 22px 6px 10px;font-size:12px;color:var(--ink);cursor:pointer}
 .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}.kpi{background:#14532d !important;border-color:#14532d !important}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}.kpi{background:#1a4a7a !important;border-color:#1a4a7a !important}
 .kpi .lbl{color:rgba(255,255,255,0.75);font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
 .kpi .val{font-size:22px;font-weight:700;margin:6px 0 4px;letter-spacing:-.4px;color:#fff}
 .kpi .val.pos{color:#86efac}
@@ -66,8 +66,8 @@ select.flt{appearance:none;border:1px solid var(--line);background:#fff;border-r
 .acct .nm{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:11.5px}
 .acct .meta{color:var(--muted);font-size:10px;margin:1px 0 4px}
 .acct .bal{font-size:13px;font-weight:700}
-.acct-group-label{font-size:13px;font-weight:700;color:#fff;background:#14532d;padding:9px 16px;border-radius:8px;margin:20px 0 12px;letter-spacing:.03em;box-shadow:0 2px 6px rgba(20,83,45,.25);cursor:pointer;display:flex;justify-content:space-between;align-items:center;user-select:none}
-.acct-type-label{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#14532d;padding:10px 2px 6px;margin-top:10px;border-top:2px solid var(--line)}
+.acct-group-label{font-size:13px;font-weight:700;color:#fff;background:#1a4a7a;padding:9px 16px;border-radius:8px;margin:20px 0 12px;letter-spacing:.03em;box-shadow:0 2px 6px rgba(26,74,122,.25);cursor:pointer;display:flex;justify-content:space-between;align-items:center;user-select:none}
+.acct-type-label{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#1a4a7a;padding:10px 2px 6px;margin-top:10px;border-top:2px solid var(--line)}
 .ledger-controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
 input[type=date]{border:1px solid var(--line);border-radius:7px;padding:5px 8px;font-size:12px;color:var(--ink);outline:none;background:var(--panel)}
 input[type=search]{border:1px solid var(--line);border-radius:7px;padding:5px 10px;font-size:12px;color:var(--ink);outline:none;background:var(--panel);width:180px}
@@ -98,7 +98,7 @@ td{padding:7px 9px;border-bottom:1px solid var(--line);white-space:nowrap;overfl
 .tab-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
 .tab-btn:hover{color:var(--accent)}
 .rec-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
-.rec-kpi{background:#14532d;border-radius:8px;padding:10px 14px}
+.rec-kpi{background:#1a4a7a;border-radius:8px;padding:10px 14px}
 .rec-kpi .lbl{color:rgba(255,255,255,0.7);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
 .rec-kpi .val{color:#fff;font-size:17px;font-weight:700;margin:4px 0 2px}
 .rec-kpi .sub{color:rgba(255,255,255,0.55);font-size:10px}
@@ -107,7 +107,7 @@ td{padding:7px 9px;border-bottom:1px solid var(--line);white-space:nowrap;overfl
 #tab-rec th.r,#tab-rec td.r{text-align:right}
 #tab-rec td{padding:6px 8px;border-bottom:1px solid var(--line);white-space:normal;overflow:visible;max-width:none}
 #tab-rec tr.totals-row td{font-weight:700;background:var(--accent-soft);border-top:2px solid var(--line)}
-.rec-amt{color:#fff;background:#14532d;border-radius:4px;padding:2px 7px;font-size:11px;font-weight:600;display:inline-block;white-space:nowrap}</style></head>
+.rec-amt{color:#fff;background:#1a4a7a;border-radius:4px;padding:2px 7px;font-size:11px;font-weight:600;display:inline-block;white-space:nowrap}</style></head>
 <body>
 <div id="cfd"></div>
 <div class="container">
@@ -677,7 +677,7 @@ function renderRecurring(){
   var moBarData=months.map(function(mo){return recurring.reduce(function(s,v){return s+(v.months[mo]||0);},0);});
   var ctx=document.getElementById('recChart');
   if(recChartInst)recChartInst.destroy();
-  recChartInst=new Chart(ctx,{type:'bar',data:{labels:months.map(moLabel),datasets:[{label:'Recurring',data:moBarData,backgroundColor:'#14532d99',borderColor:'#14532d',borderWidth:1.5,borderRadius:4}]},options:{maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return usdAbs(c.parsed.y);}}}},scales:{x:{ticks:{font:{size:10}}},y:{ticks:{callback:function(v){return'$'+(v/1000).toFixed(0)+'k';}}}}}});
+  recChartInst=new Chart(ctx,{type:'bar',data:{labels:months.map(moLabel),datasets:[{label:'Recurring',data:moBarData,backgroundColor:'#1a4a7a99',borderColor:'#1a4a7a',borderWidth:1.5,borderRadius:4}]},options:{maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return usdAbs(c.parsed.y);}}}},scales:{x:{ticks:{font:{size:10}}},y:{ticks:{callback:function(v){return'$'+(v/1000).toFixed(0)+'k';}}}}}});
   // Table
   var tbl=document.getElementById('rec-table');
   if(!recurring.length){tbl.innerHTML='<tr><td style="padding:20px;color:var(--muted);text-align:center">No recurring charges found in this period.</td></tr>';return;}
