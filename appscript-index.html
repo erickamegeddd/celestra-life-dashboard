@@ -284,8 +284,8 @@ function filtered(){
   }
   if(STATE.period>0){cutoff=new Date();cutoff.setDate(cutoff.getDate()-STATE.period);}
   return ALL.filter(function(r){
-    if(VIEW_PARAM==='rob'&&isFrankAcct(r.account))return false;
-    if(VIEW_PARAM==='frank'&&!isInNamedGroup(r.account))return false;
+    if(VIEW_PARAM==='rob'&&getGroup(r.account)==='Frank Personal')return false;
+    if(VIEW_PARAM==='frank'&&getGroup(r.account)==="Rob's Personal")return false;
     if(STATE.account){if(STATE.account.indexOf('__grp__')===0){if(getGroup(r.account)!==STATE.account.slice(7))return false;}else{if(r.account!==STATE.account)return false;}}
     if(cutoff&&r.date<cutoff.toISOString().slice(0,10))return false;
     if(STATE.catFilter&&r.category!==STATE.catFilter)return false;
@@ -404,7 +404,7 @@ function renderAccounts(){
   var content=document.getElementById('acct-content');if(!content)return;
   var groups={"Rob's Personal":[],'Perseverance':[],'PayDiverse/Elm':[],'Celestra/Fortuna':[],'Frank Personal':[]};
   var _ns={};Object.keys(LIVE_BAL).forEach(function(nm){_ns[nm]=1;});ALL.forEach(function(r){if(r.account)_ns[r.account]=1;});Object.keys(ACCT_LABELS).forEach(function(nm){_ns[nm]=1;});var names=Object.keys(_ns);
-  names.forEach(function(nm){if(VIEW_PARAM==='rob'&&isFrankAcct(nm))return;if(VIEW_PARAM==='frank'&&!isInNamedGroup(nm))return;var g=getGroup(nm);if(!groups[g])groups[g]=[];groups[g].push(nm);});
+  names.forEach(function(nm){if(VIEW_PARAM==='rob'&&getGroup(nm)==='Frank Personal')return;if(VIEW_PARAM==='frank'&&getGroup(nm)==="Rob's Personal")return;var g=getGroup(nm);if(!groups[g])groups[g]=[];groups[g].push(nm);});
   var html='',gi=0;
   Object.entries(groups).forEach(function(e){var grp=e[0],accts=e[1];if(!accts.length)return;if(VIEW_PARAM==='rob'&&grp==='Frank Personal')return;if(VIEW_PARAM==='frank'&&grp==="Rob's Personal")return;var gid='acct-g-'+(gi++);html+='<div class="acct-group-label" onclick="toggleAG(this)" data-gid="'+gid+'">'+esc(grp)+'<span>&#9654;</span></div><div id="'+gid+'" style="display:none">'+renderTypeSplit(accts)+'</div>';});
   content.innerHTML=html||'<div style="color:var(--muted);text-align:center;padding:32px">Sync to load account data.</div>';
@@ -532,7 +532,7 @@ function renderTx(){
   document.getElementById('tx-body').innerHTML=rows.slice((STATE.page-1)*PAGE,STATE.page*PAGE).map(function(r){
     var cls=r.amount<0?'amt-neg':'amt-pos';
     return'<tr><td>'+r.date+'</td><td title="'+esc(r.account)+'">'+esc(lbl(r.account))+'</td><td class="desc-cell" data-id="'+esc(r.id)+'" data-desc="'+esc(r.description||r.payee||'')+'" data-orig="'+esc(r._origDesc||r.description||r.payee||'')+'" data-date="'+esc(r.date||'')+'" data-account="'+esc(r.account||'')+'" data-amount="'+Number(r.amount||0)+'" onclick="editDesc(event,this)">'+esc(r.description||r.payee||'')+'<span class="edit-hint">✏</span></td>'
-      +'<td class="cat-cell" data-id="'+esc(r.id)+'" data-cat="'+esc(r.category)+'" data-date="'+esc(r.date||'')+'" data-account="'+esc(r.account||'')+'" data-amount="'+Number(r.amount||0)+'" onclick="editCat(event,this)"><span class="tag">'+esc(r.category)+'</span><span class="edit-hint">✏</span></td>'
+      +'<td class="cat-cell" data-id="'+esc(r.id)+'" data-cat="'+esc(r.category)+'" data-date="'+esc(r.date||'')+'" data-account="'+esc(r.account||'')+'" data-amount="'+Number(r.amount||0)+'" data-orig="'+esc(r._origDesc||r.description||r.payee||'')+'" onclick="editCat(event,this)">'+(r.category?'<span class="tag">'+esc(r.category)+'</span>':'')+'<span class="edit-hint">✏</span></td>'
       +'<td class="right '+cls+'">'+usdAbs(r.amount)+'</td></tr>';
   }).join('');
   document.getElementById('pager').innerHTML='<button '+(STATE.page<=1?'disabled':'')+' onclick="STATE.page--;renderTx()">‹ Prev</button><span>Page '+STATE.page+' of '+pages+' ('+total.toLocaleString()+')</span><button '+(STATE.page>=pages?'disabled':'')+' onclick="STATE.page++;renderTx()">Next ›</button>';
@@ -543,8 +543,11 @@ function editCat(ev,td){
   ev.stopPropagation();if(td.querySelector('select'))return;
   var cur=td.getAttribute('data-cat')||'',id=td.getAttribute('data-id')||'';
   var rDate=td.getAttribute('data-date')||'',rAcct=td.getAttribute('data-account')||'',rAmt=td.getAttribute('data-amount')||'';
+  var rOrig=td.getAttribute('data-orig')||cur;
   var cKey=rDate+'|'+rAcct+'|'+rAmt;
+  var normD=normVendor(rOrig);
   var sel=document.createElement('select');sel.className='cat-select';
+  var blk=document.createElement('option');blk.value='';blk.textContent='— None —';if(!cur)blk.selected=true;sel.appendChild(blk);
   ALL_CATS.forEach(function(c){var o=document.createElement('option');o.value=c;o.textContent=c;if(c===cur)o.selected=true;sel.appendChild(o);});
   td.innerHTML='';td.appendChild(sel);
   sel.onclick=function(e){e.stopPropagation();};
@@ -552,10 +555,11 @@ function editCat(ev,td){
   sel.onchange=function(){
     _catChanged=true;
     var nc=sel.value;
-    td.innerHTML='<span class="tag">'+esc(nc)+'</span><span class="edit-hint">✏</span>';
+    td.innerHTML=(nc?'<span class="tag">'+esc(nc)+'</span>':'')+'<span class="edit-hint">✏</span>';
     td.setAttribute('data-cat',nc);
-    var row=ALL.find(function(r){return(r.id&&r.id===id)||(r.date+'|'+r.account+'|'+r.amount===cKey);});if(row)row.category=nc;
+    var cdMap=JSON.parse(localStorage.getItem('catDescMap')||'{}');cdMap[normD]=nc;localStorage.setItem('catDescMap',JSON.stringify(cdMap));
     var catMap=JSON.parse(localStorage.getItem('catMap')||'{}');catMap[cKey]=nc;localStorage.setItem('catMap',JSON.stringify(catMap));
+    ALL.forEach(function(r){var ro=r._origDesc||r.description||r.payee||'';if(normVendor(ro)===normD)r.category=nc;});
     renderDonut(filtered());
     toast('Category saved');
     if(id)google.script.run.withSuccessHandler(function(){}).withFailureHandler(function(){}).updateCategory(id,nc);
@@ -563,7 +567,7 @@ function editCat(ev,td){
   sel.onblur=function(){
     if(_catChanged)return;
     if(!td.querySelector('select'))return;
-    td.innerHTML='<span class="tag">'+esc(cur)+'</span><span class="edit-hint">✏</span>';
+    td.innerHTML=(cur?'<span class="tag">'+esc(cur)+'</span>':'')+'<span class="edit-hint">✏</span>';
   };
   sel.focus();
 }
@@ -609,8 +613,8 @@ function renderRecurring(){
   var mNames=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   function moLabel(m){var p=m.split('-');return mNames[parseInt(p[1],10)-1]+' \''+p[0].slice(2);}
   var rows=ALL.filter(function(r){
-    if(VIEW_PARAM==='rob'&&isFrankAcct(r.account))return false;
-    if(VIEW_PARAM==='frank'&&!isInNamedGroup(r.account))return false;
+    if(VIEW_PARAM==='rob'&&getGroup(r.account)==='Frank Personal')return false;
+    if(VIEW_PARAM==='frank'&&getGroup(r.account)==="Rob's Personal")return false;
     if(STATE.account){if(STATE.account.indexOf('__grp__')===0){if(getGroup(r.account)!==STATE.account.slice(7))return false;}else{if(r.account!==STATE.account)return false;}}
     return true;
   });
@@ -681,7 +685,7 @@ function doSync(){
 function loadData(){
   var btn=document.getElementById('sync-btn');
   var token='<?= userToken ?>';if(token==='rob'||token==='frank'){VIEW_PARAM=token;var _vs=document.getElementById('view-sel');if(_vs){_vs.value=token;_vs.style.display='none';}token='';}
-  google.script.run.withSuccessHandler(function(data){ALL=data.rows||[];LIVE_BAL=data.accounts||{};var catMap=JSON.parse(localStorage.getItem('catMap')||'{}');var dM2=JSON.parse(localStorage.getItem('descMap')||'{}');ALL.forEach(function(r){if(r.category==='Payroll & Income'){r.category=r.amount<0?'Payroll':'Income';}var _rawD=r.description||r.payee||'';r._origDesc=_rawD;if(dM2[normVendor(_rawD)])r.description=dM2[normVendor(_rawD)];var cKey=(r.date||'')+'|'+(r.account||'')+'|'+r.amount;if(catMap[cKey])r.category=catMap[cKey];});document.getElementById('loading').style.display='none';document.getElementById('overview').classList.add('active');render();btn.disabled=false;btn.innerHTML='🔄 Sync';}).withFailureHandler(function(e){document.getElementById('loading').textContent='Error: '+e.message;btn.disabled=false;btn.innerHTML='🔄 Sync';}).getData(token||null);
+  google.script.run.withSuccessHandler(function(data){ALL=data.rows||[];LIVE_BAL=data.accounts||{};var catDescMap=JSON.parse(localStorage.getItem('catDescMap')||'{}');var catMap=JSON.parse(localStorage.getItem('catMap')||'{}');var dM2=JSON.parse(localStorage.getItem('descMap')||'{}');ALL.forEach(function(r){var _rawD=r.description||r.payee||'';r._origDesc=_rawD;var _sc=r.category||'';r.category='';if(_sc==='Payroll & Income'){r.category=r.amount<0?'Payroll':'Income';}if(dM2[normVendor(_rawD)])r.description=dM2[normVendor(_rawD)];var nd2=normVendor(_rawD);if(catDescMap[nd2])r.category=catDescMap[nd2];var cKey=(r.date||'')+'|'+(r.account||'')+'|'+r.amount;if(catMap[cKey])r.category=catMap[cKey];});(function(){try{var tc=JSON.parse(localStorage.getItem('txCache')||'[]');if(tc.length){var fk={};ALL.forEach(function(r){fk[(r.date||'')+'|'+(r.account||'')+'|'+r.amount]=1;});tc.forEach(function(r){var k=(r.date||'')+'|'+(r.account||'')+'|'+r.amount;if(fk[k])return;var rd=r._origDesc||r.description||r.payee||'';if(dM2[normVendor(rd)])r.description=dM2[normVendor(rd)];var _sc2=r.category||'';r.category='';if(_sc2==='Payroll & Income'){r.category=r.amount<0?'Payroll':'Income';}var nd3=normVendor(rd);if(catDescMap[nd3])r.category=catDescMap[nd3];if(catMap[k])r.category=catMap[k];ALL.push(r);});}localStorage.setItem('txCache',JSON.stringify(ALL));}catch(e){}}());document.getElementById('loading').style.display='none';document.getElementById('overview').classList.add('active');render();btn.disabled=false;btn.innerHTML='🔄 Sync';}).withFailureHandler(function(e){document.getElementById('loading').textContent='Error: '+e.message;btn.disabled=false;btn.innerHTML='🔄 Sync';}).getData(token||null);
 }
 (function(){
   var saved=localStorage.getItem('lastSync');if(saved){var s=document.getElementById('sync-status');s.textContent=saved;s.style.color='var(--pos)';}
