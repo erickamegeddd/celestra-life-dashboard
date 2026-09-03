@@ -497,6 +497,9 @@ function renderAccounts(){
 }
 var FILTERS={};
 var REC_FILTERS={};
+var REC_SORT={col:'total',dir:-1};
+function sortRec(col){if(REC_SORT.col===col)REC_SORT.dir*=-1;else{REC_SORT.col=col;REC_SORT.dir=1;}renderRecurring();}
+function recSortArrow(col){return REC_SORT.col===col?(REC_SORT.dir===1?'▲':'▼'):'';}
 var _recVendors=[];
 var _cfd_col=null;
 function toast(msg,err){
@@ -739,7 +742,15 @@ function renderRecurring(){
     vmap[key].total+=Math.abs(r.amount);
   });
   var recurring=Object.values(vmap).filter(function(v){return Object.keys(v.months).length>=2;});
-  recurring.sort(function(a,b){return b.total-a.total;});
+  recurring.sort(function(a,b){
+    var av,bv;
+    if(REC_SORT.col==='account'){av=Object.keys(a.accts||{}).map(function(x){return lbl(x);}).join(', ').toLowerCase();bv=Object.keys(b.accts||{}).map(function(x){return lbl(x);}).join(', ').toLowerCase();}
+    else if(REC_SORT.col==='category'){av=(a.category||'').toLowerCase();bv=(b.category||'').toLowerCase();}
+    else if(REC_SORT.col==='vendor'){av=(a.display||'').toLowerCase();bv=(b.display||'').toLowerCase();}
+    else if(REC_SORT.col==='avg'){av=a.total/Math.max(1,Object.keys(a.months).length);bv=b.total/Math.max(1,Object.keys(b.months).length);}
+    else{av=a.total;bv=b.total;}
+    if(av<bv)return -REC_SORT.dir;if(av>bv)return REC_SORT.dir;return 0;
+  });
   if(STATE.catFilter)recurring=recurring.filter(function(v){return v.category===STATE.catFilter;});
   if(REC_FILTERS.vendor)recurring=recurring.filter(function(v){return v.display===REC_FILTERS.vendor;});
   if(REC_FILTERS.category)recurring=recurring.filter(function(v){return v.category===REC_FILTERS.category;});
@@ -767,7 +778,14 @@ function renderRecurring(){
   if(!recurring.length){tbl.innerHTML='<tr><td style="padding:20px;color:var(--muted);text-align:center">No recurring charges found in this period.</td></tr>';return;}
   var moTotals={};months.forEach(function(mo){moTotals[mo]=0;});
   recurring.forEach(function(v){months.forEach(function(mo){moTotals[mo]+=(v.months[mo]||0);});});
-  var thead='<thead><tr><th onclick="openRecCF(\"vendor\",this)" style="cursor:pointer">Vendor</th><th>Account</th><th onclick="openRecCF(\"category\",this)" style="cursor:pointer">Category</th>'+months.map(function(mo){return'<th class="r">'+moLabel(mo)+'</th>';}).join('')+'<th class="r">Avg/mo</th><th class="r">Total</th></tr></thead>';
+  var thead='<thead><tr>'+
+    '<th style="cursor:pointer;white-space:nowrap" onclick="sortRec(\'vendor\')">Vendor <span style="font-size:10px">'+recSortArrow('vendor')+'</span></th>'+
+    '<th style="cursor:pointer;white-space:nowrap" onclick="sortRec(\'account\')">Account <span style="font-size:10px">'+recSortArrow('account')+'</span></th>'+
+    '<th style="cursor:pointer;white-space:nowrap" onclick="sortRec(\'category\')">Category <span style="font-size:10px">'+recSortArrow('category')+'</span></th>'+
+    months.map(function(mo){return'<th class="r">'+moLabel(mo)+'</th>';}).join('')+
+    '<th class="r" style="cursor:pointer;white-space:nowrap" onclick="sortRec(\'avg\')">Avg/mo <span style="font-size:10px">'+recSortArrow('avg')+'</span></th>'+
+    '<th class="r" style="cursor:pointer;white-space:nowrap" onclick="sortRec(\'total\')">Total <span style="font-size:10px">'+recSortArrow('total')+'</span></th>'+
+    '</tr></thead>';
   var tbody='<tbody>'+recurring.map(function(v){
     var avg=v.total/Object.keys(v.months).length;
     var moCells=months.map(function(mo){var a=v.months[mo]||0;return a?'<td class="r"><span class="rec-amt">'+usdAbs(a)+'</span></td>':'<td class="r" style="color:var(--muted)">—</td>';});
