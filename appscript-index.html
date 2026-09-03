@@ -591,7 +591,7 @@ function renderTx(){
   var ta=document.getElementById('tx-acct-filter');var taVal=ta?ta.value:'';
   if(ds)rows=rows.filter(function(r){return r.date>=ds;});
   if(de)rows=rows.filter(function(r){return r.date<=de;});
-  if(taVal)rows=rows.filter(function(r){return r.account===taVal;});
+  if(taVal){if(taVal.indexOf('__grp__')===0){var _tg=taVal.slice(7);rows=rows.filter(function(r){return getGroup(r.account)===_tg;});}else{rows=rows.filter(function(r){return r.account===taVal;});}}
   if(q)rows=rows.filter(function(r){return(r.description+r.payee+lbl(r.account)+r.category).toLowerCase().includes(q);});
   // View-filtered accounts sorted alphabetically by label
   var _viewAccts=Array.from(new Set(ALL.filter(function(r){
@@ -599,10 +599,24 @@ function renderTx(){
     if(VIEW_PARAM==='frank'&&getGroup(r.account)==="Rob's Personal")return false;
     return true;
   }).map(function(r){return r.account||';'}))).filter(function(a){return a!==';';}).sort(function(a,b){return lbl(a).toLowerCase()<lbl(b).toLowerCase()?-1:lbl(a).toLowerCase()>lbl(b).toLowerCase()?1:0;});
-  // Populate account filter dropdown
-  if(ta&&ta.options.length<=1&&ALL.length>0){
-    _viewAccts.forEach(function(nm){var o=document.createElement('option');o.value=nm;o.textContent=lbl(nm);ta.appendChild(o);});
-  }
+  // Populate account filter dropdowns with groups (matching top acct-filter)
+  (function(){
+    if(!ALL.length)return;
+    var _taGrps={};
+    _viewAccts.forEach(function(nm){var g=getGroup(nm);if(!_taGrps[g])_taGrps[g]=[];_taGrps[g].push(nm);});
+    function _buildGroupedSel(el,withGroupOpt){
+      if(!el||el.options.length>1)return;
+      Object.keys(_taGrps).forEach(function(grp){
+        var accts=_taGrps[grp];if(!accts||!accts.length)return;
+        var og=document.createElement('optgroup');og.label=grp;
+        if(withGroupOpt){var go=document.createElement('option');go.value='__grp__'+grp;go.textContent='All '+grp;og.appendChild(go);}
+        accts.slice().sort(function(a,b){return lbl(a).localeCompare(lbl(b));}).forEach(function(nm){var o=document.createElement('option');o.value=nm;o.textContent=lbl(nm);og.appendChild(o);});
+        el.appendChild(og);
+      });
+    }
+    _buildGroupedSel(ta,true);
+    _buildGroupedSel(document.getElementById('cf-account'),false);
+  })();
   ['date','account','description','category','amount'].forEach(function(c){var el=document.getElementById('sort-'+c);if(el)el.textContent=SORT.col===c?(SORT.dir===1?'\u25b2':'\u25bc'):'';});
   if(SORT.col){rows=rows.slice().sort(function(a,b){var av,bv;if(SORT.col==='date'){av=a.date;bv=b.date;}else if(SORT.col==='account'){av=lbl(a.account).toLowerCase();bv=lbl(b.account).toLowerCase();}else if(SORT.col==='description'){av=(a.description||a.payee||'').toLowerCase();bv=(b.description||b.payee||'').toLowerCase();}else if(SORT.col==='category'){av=(a.category||'').toLowerCase();bv=(b.category||'').toLowerCase();}else{av=a.amount;bv=b.amount;}if(av<bv)return -SORT.dir;if(av>bv)return SORT.dir;return 0;});}
   var _fks=Object.keys(FILTERS||{});for(var _fi=0;_fi<_fks.length;_fi++){var _fc=_fks[_fi];if(FILTERS[_fc]){var _fv=FILTERS[_fc];rows=rows.filter(function(r){return colVal(r,_fc)===_fv;});}}
@@ -610,7 +624,6 @@ function renderTx(){
   (function(){
     var cfSelectors=[
       {id:'cf-date',vals:Array.from(new Set(ALL.map(function(r){return(r.date||'').slice(0,7);}))).filter(Boolean).sort().reverse(),lbl:function(v){return v;}},
-      {id:'cf-account',vals:_viewAccts,lbl:function(v){return lbl(v);}},
       {id:'cf-description',vals:Array.from(new Set(ALL.map(function(r){return r.description||r.payee||'';}))).filter(Boolean).sort(),lbl:function(v){return v;}},
       {id:'cf-category',vals:Array.from(new Set(ALL.map(function(r){return r.category||'';}))).filter(Boolean).sort(),lbl:function(v){return v;}}
     ];
@@ -625,7 +638,7 @@ function renderTx(){
   var cfDesc=((document.getElementById('cf-description')||{}).value||'').toLowerCase();
   var cfCat=((document.getElementById('cf-category')||{}).value||'').toLowerCase();
   if(cfDate)rows=rows.filter(function(r){return(r.date||'').slice(0,7)===cfDate;});
-  if(cfAcct)rows=rows.filter(function(r){return r.account===cfAcct;});
+  if(cfAcct)rows=rows.filter(function(r){return r.account===cfAcct;});  // cf-account always individual accounts
   if(cfDesc)rows=rows.filter(function(r){return(r.description||r.payee||'').toLowerCase()===cfDesc;});
   if(cfCat)rows=rows.filter(function(r){return(r.category||'').toLowerCase()===cfCat;});
   // Tx-tab KPI bar — reflects fully filtered rows
