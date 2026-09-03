@@ -148,7 +148,6 @@ td{padding:7px 9px;border-bottom:1px solid var(--line);white-space:nowrap;overfl
         <select class="flt" id="acct-filter" onchange="STATE.account=this.value;STATE.page=1;render()"><option value="">All accounts</option></select>
       </div>
     </div>
-    <div class="month-btns" id="month-btns"></div>
     <div class="kpis">
       <div class="card kpi"><div class="lbl">Total Spent</div><div class="val neg" id="k-spent">$0</div></div>
       <div class="card kpi"><div class="lbl">Income</div><div class="val pos" id="k-income">$0</div></div>
@@ -192,6 +191,7 @@ td{padding:7px 9px;border-bottom:1px solid var(--line);white-space:nowrap;overfl
         <input type="search" id="tx-search" placeholder="Search desc, category…" oninput="renderTx()"/>
         <span id="tx-count" style="color:var(--muted);font-size:11px;margin-left:auto"></span>
       </div>
+      <div class="month-btns" id="month-btns" style="margin:0 0 8px"></div>
       <div style="overflow-x:auto"><table><thead><tr>
         <th style="cursor:pointer" onclick="openCF('date',this)">Date</th><th style="cursor:pointer" onclick="openCF('account',this)">Account</th><th style="cursor:pointer" onclick="openCF('description',this)">Description</th><th style="cursor:pointer" onclick="openCF('category',this)">Category</th><th class="right" style="cursor:pointer" onclick="openCF('amount',this)">Amount</th>
       </tr></thead><tbody id="tx-body"></tbody></table></div>
@@ -320,7 +320,7 @@ function clearCustomRange(){
   STATE.page=1;render();
 }
 
-function render(){var rows=filtered();renderKPIs(rows);renderBar(rows);renderDonut(rows);renderAccounts();renderTx();renderMonthBtns();var tr=document.getElementById('tab-rec');if(tr&&tr.style.display!=='none')renderRecurring();}
+function render(){var rows=filtered();renderKPIs(rows);renderBar(rows);renderDonut(rows);renderAccounts();renderTx();var tr=document.getElementById('tab-rec');if(tr&&tr.style.display!=='none')renderRecurring();}
 function renderKPIs(rows){
   var spent=0,income=0;
   rows.forEach(function(r){if(r.amount<0)spent+=r.amount;else income+=r.amount;});
@@ -675,7 +675,7 @@ function renderMonthBtns(){
   var sorted=Object.keys(ms).sort();
   d.innerHTML=sorted.map(function(ym){
     var p=ym.split('-');var lbl=mNames[parseInt(p[1],10)-1]+' \''+p[0].slice(2);
-    var active=(STATE.customStart===ym+'-01')?'active':'';
+    var _ds=document.getElementById('d-start');var active=(_ds&&_ds.value===ym+'-01')?'active':'';
     return'<button class="mo-btn '+active+'" onclick="setMonthFilter(\''+ym+'\')" >'+lbl+'</button>';
   }).join('');
 }
@@ -683,13 +683,9 @@ function setMonthFilter(ym){
   var p=ym.split('-');var y=parseInt(p[0]);var m=parseInt(p[1]);
   var last=new Date(y,m,0).getDate();
   var start=ym+'-01';var end=ym+'-'+(last<10?'0':'')+last;
-  STATE.customStart=start;STATE.customEnd=end;
-  var rs=document.getElementById('range-start');var re=document.getElementById('range-end');
-  if(rs)rs.value=start;if(re)re.value=end;
-  var row=document.getElementById('date-range-row');if(row)row.style.display='flex';
-  var rbtn=document.getElementById('range-btn');if(rbtn)rbtn.classList.add('range-active');
-  document.querySelectorAll('#period-btns .tgl:not(#range-btn)').forEach(function(b){b.classList.remove('on');});
-  STATE.page=1;render();renderMonthBtns();
+  var ds=document.getElementById('d-start');var de=document.getElementById('d-end');
+  if(ds)ds.value=start;if(de)de.value=end;
+  STATE.page=1;renderTx();renderMonthBtns();
 }
 function toggleCat(c){STATE.catFilter=(STATE.catFilter===c?null:c);render();}
 function editLegendCat(el,oldCat){
