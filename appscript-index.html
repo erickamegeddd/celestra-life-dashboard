@@ -93,7 +93,7 @@ td{padding:7px 9px;border-bottom:1px solid var(--line);white-space:nowrap;overfl
 .date-range-row .clear-btn{font-size:11px;color:var(--neg);background:none;border:none;cursor:pointer;font-weight:700;padding:2px 6px}
 .tgl.range-active{background:var(--accent);color:#fff !important;box-shadow:0 1px 3px rgba(0,0,0,.2)}
 </style>
-<!-- built:2026-08-27-03h --><style>.th-filt{cursor:pointer;user-select:none}.th-filt:hover{color:var(--accent)}.desc-cell{cursor:pointer}.desc-input{width:100%;box-sizing:border-box;border:1px solid var(--accent);border-radius:3px;padding:2px 5px;font-size:12px;font-family:inherit}#cfd{display:none;position:fixed;background:#fff;border:1px solid var(--line);border-radius:6px;box-shadow:0 4px 18px rgba(0,0,0,.18);z-index:9999;max-height:280px;overflow-y:auto;min-width:170px}.cfi{padding:7px 14px;font-size:12px;cursor:pointer;white-space:nowrap}.cfi:hover{background:var(--accent-soft)}.cfi-sel{color:var(--accent);font-weight:700}.cfd-search{width:100%;box-sizing:border-box;padding:7px 10px;border:none;border-bottom:1px solid var(--line);outline:none;font-size:12px;background:#f8faf8;font-family:inherit}.tab-btns{display:flex;gap:0;border-bottom:2px solid var(--line);margin-bottom:14px}
+<!-- built:2026-08-27-03h --><style>.month-btns{display:flex;gap:4px;flex-wrap:wrap;margin:0 0 10px}.mo-btn{border:1px solid var(--line);background:#fff;border-radius:16px;padding:3px 10px;font-size:11px;font-weight:600;color:var(--muted);cursor:pointer;white-space:nowrap}.mo-btn:hover{border-color:var(--accent);color:var(--accent)}.mo-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}.th-filt{cursor:pointer;user-select:none}.th-filt:hover{color:var(--accent)}.desc-cell{cursor:pointer}.desc-input{width:100%;box-sizing:border-box;border:1px solid var(--accent);border-radius:3px;padding:2px 5px;font-size:12px;font-family:inherit}#cfd{display:none;position:fixed;background:#fff;border:1px solid var(--line);border-radius:6px;box-shadow:0 4px 18px rgba(0,0,0,.18);z-index:9999;max-height:280px;overflow-y:auto;min-width:170px}.cfi{padding:7px 14px;font-size:12px;cursor:pointer;white-space:nowrap}.cfi:hover{background:var(--accent-soft)}.cfi-sel{color:var(--accent);font-weight:700}.cfd-search{width:100%;box-sizing:border-box;padding:7px 10px;border:none;border-bottom:1px solid var(--line);outline:none;font-size:12px;background:#f8faf8;font-family:inherit}.tab-btns{display:flex;gap:0;border-bottom:2px solid var(--line);margin-bottom:14px}
 .tab-btn{border:none;background:transparent;padding:9px 18px;font-size:12px;font-weight:700;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;transition:color .15s}
 .tab-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
 .tab-btn:hover{color:var(--accent)}
@@ -148,6 +148,7 @@ td{padding:7px 9px;border-bottom:1px solid var(--line);white-space:nowrap;overfl
         <select class="flt" id="acct-filter" onchange="STATE.account=this.value;STATE.page=1;render()"><option value="">All accounts</option></select>
       </div>
     </div>
+    <div class="month-btns" id="month-btns"></div>
     <div class="kpis">
       <div class="card kpi"><div class="lbl">Total Spent</div><div class="val neg" id="k-spent">$0</div></div>
       <div class="card kpi"><div class="lbl">Income</div><div class="val pos" id="k-income">$0</div></div>
@@ -319,7 +320,7 @@ function clearCustomRange(){
   STATE.page=1;render();
 }
 
-function render(){var rows=filtered();renderKPIs(rows);renderBar(rows);renderDonut(rows);renderAccounts();renderTx();var tr=document.getElementById('tab-rec');if(tr&&tr.style.display!=='none')renderRecurring();}
+function render(){var rows=filtered();renderKPIs(rows);renderBar(rows);renderDonut(rows);renderAccounts();renderTx();renderMonthBtns();var tr=document.getElementById('tab-rec');if(tr&&tr.style.display!=='none')renderRecurring();}
 function renderKPIs(rows){
   var spent=0,income=0;
   rows.forEach(function(r){if(r.amount<0)spent+=r.amount;else income+=r.amount;});
@@ -621,9 +622,10 @@ function renderRecurring(){
   var vmap={};
   rows.forEach(function(r){
     var key=normVendor(r._origDesc||r.description||r.payee||'');if(!key)return;
-    if(!vmap[key]){var _raw=(r._origDesc||r.description||r.payee||'').trim();var _disp=_raw.replace(/\b[X]+[\dX]+\b/g,'').replace(/\b\d{5,}\b/g,'').replace(/[_]+/g,' ').replace(/\s{2,}/g,' ').trim();vmap[key]={display:_disp||_raw,category:r.category||'',months:{},total:0};}
+    if(!vmap[key]){var _raw=(r._origDesc||r.description||r.payee||'').trim();var _disp=_raw.replace(/\b[X]+[\dX]+\b/g,'').replace(/\b\d{5,}\b/g,'').replace(/[_]+/g,' ').replace(/\s{2,}/g,' ').trim();vmap[key]={display:_disp||_raw,category:r.category||'',months:{},accts:{},total:0};}
     var mo=(r.date||'').slice(0,7);
     vmap[key].months[mo]=(vmap[key].months[mo]||0)+Math.abs(r.amount);
+    var _ra=r.account||'';vmap[key].accts[_ra]=(vmap[key].accts[_ra]||0)+1;
     vmap[key].total+=Math.abs(r.amount);
   });
   var recurring=Object.values(vmap).filter(function(v){return Object.keys(v.months).length>=2;});
@@ -655,13 +657,39 @@ function renderRecurring(){
   if(!recurring.length){tbl.innerHTML='<tr><td style="padding:20px;color:var(--muted);text-align:center">No recurring charges found in this period.</td></tr>';return;}
   var moTotals={};months.forEach(function(mo){moTotals[mo]=0;});
   recurring.forEach(function(v){months.forEach(function(mo){moTotals[mo]+=(v.months[mo]||0);});});
-  var thead='<thead><tr><th onclick="openRecCF(\"vendor\",this)" style="cursor:pointer">Vendor</th><th onclick="openRecCF(\"category\",this)" style="cursor:pointer">Category</th>'+months.map(function(mo){return'<th class="r">'+moLabel(mo)+'</th>';}).join('')+'<th class="r">Avg/mo</th><th class="r">Total</th></tr></thead>';
+  var thead='<thead><tr><th onclick="openRecCF(\"vendor\",this)" style="cursor:pointer">Vendor</th><th>Account</th><th onclick="openRecCF(\"category\",this)" style="cursor:pointer">Category</th>'+months.map(function(mo){return'<th class="r">'+moLabel(mo)+'</th>';}).join('')+'<th class="r">Avg/mo</th><th class="r">Total</th></tr></thead>';
   var tbody='<tbody>'+recurring.map(function(v){
     var avg=v.total/Object.keys(v.months).length;
     var moCells=months.map(function(mo){var a=v.months[mo]||0;return a?'<td class="r"><span class="rec-amt">'+usdAbs(a)+'</span></td>':'<td class="r" style="color:var(--muted)">—</td>';});
-    return'<tr><td>'+esc(v.display)+'</td><td><span class="tag">'+esc(v.category)+'</span></td>'+moCells.join('')+'<td class="r">'+usdAbs(avg)+'</td><td class="r" style="font-weight:700">'+usdAbs(v.total)+'</td></tr>';
+    var _topAcct=Object.entries(v.accts||{}).sort(function(a,b){return b[1]-a[1];})[0];
+    var _acctLabel=_topAcct?lbl(_topAcct[0]):'';
+    var _multiAcct=Object.keys(v.accts||{}).length>1?' +':''; 
+    return'<tr><td>'+esc(v.display)+'</td><td style="font-size:11px">'+esc(_acctLabel)+esc(_multiAcct)+'</td><td><span class="tag">'+esc(v.category)+'</span></td>'+moCells.join('')+'<td class="r">'+usdAbs(avg)+'</td><td class="r" style="font-weight:700">'+usdAbs(v.total)+'</td></tr>';
   }).join('')+'<tr class="totals-row"><td colspan="2">Monthly total</td>'+months.map(function(mo){return'<td class="r">'+usdAbs(moTotals[mo])+'</td>';}).join('')+'<td class="r">'+usdAbs(totalRec/months.length)+'</td><td class="r">'+usdAbs(totalRec)+'</td></tr></tbody>';
   tbl.innerHTML=thead+tbody;
+}
+function renderMonthBtns(){
+  var d=document.getElementById('month-btns');if(!d)return;
+  var mNames=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var ms={};ALL.forEach(function(r){if(r.date)ms[r.date.slice(0,7)]=1;});
+  var sorted=Object.keys(ms).sort();
+  d.innerHTML=sorted.map(function(ym){
+    var p=ym.split('-');var lbl=mNames[parseInt(p[1],10)-1]+' \''+p[0].slice(2);
+    var active=(STATE.customStart===ym+'-01')?'active':'';
+    return'<button class="mo-btn '+active+'" onclick="setMonthFilter(\''+ym+'\')" >'+lbl+'</button>';
+  }).join('');
+}
+function setMonthFilter(ym){
+  var p=ym.split('-');var y=parseInt(p[0]);var m=parseInt(p[1]);
+  var last=new Date(y,m,0).getDate();
+  var start=ym+'-01';var end=ym+'-'+(last<10?'0':'')+last;
+  STATE.customStart=start;STATE.customEnd=end;
+  var rs=document.getElementById('range-start');var re=document.getElementById('range-end');
+  if(rs)rs.value=start;if(re)re.value=end;
+  var row=document.getElementById('date-range-row');if(row)row.style.display='flex';
+  var rbtn=document.getElementById('range-btn');if(rbtn)rbtn.classList.add('range-active');
+  document.querySelectorAll('#period-btns .tgl:not(#range-btn)').forEach(function(b){b.classList.remove('on');});
+  STATE.page=1;render();renderMonthBtns();
 }
 function toggleCat(c){STATE.catFilter=(STATE.catFilter===c?null:c);render();}
 function editLegendCat(el,oldCat){
@@ -685,7 +713,7 @@ function doSync(){
 function loadData(){
   var btn=document.getElementById('sync-btn');
   var token='<?= userToken ?>';if(token==='rob'||token==='frank'){VIEW_PARAM=token;var _vs=document.getElementById('view-sel');if(_vs){_vs.value=token;_vs.style.display='none';}token='';}
-  google.script.run.withSuccessHandler(function(data){ALL=data.rows||[];LIVE_BAL=data.accounts||{};var catDescMap=JSON.parse(localStorage.getItem('catDescMap')||'{}');var catMap=JSON.parse(localStorage.getItem('catMap')||'{}');var dM2=JSON.parse(localStorage.getItem('descMap')||'{}');ALL.forEach(function(r){var _rawD=r.description||r.payee||'';r._origDesc=_rawD;var _sc=r.category||'';r.category='';if(_sc==='Payroll & Income'){r.category=r.amount<0?'Payroll':'Income';}(function(){var _nv0=normVendor(_rawD);var _dk=[_nv0,_nv0.replace(/#/g,'').replace(/\s{2,}/g,' ').trim(),_rawD.trim().toLowerCase(),_rawD.trim()];for(var _di=0;_di<_dk.length;_di++){if(dM2[_dk[_di]]){r.description=dM2[_dk[_di]];break;}}})();var nd2=normVendor(_rawD);if(catDescMap[nd2])r.category=catDescMap[nd2];var cKey=(r.date||'')+'|'+(r.account||'')+'|'+r.amount;if(catMap[cKey])r.category=catMap[cKey];});(function(){try{var tc=JSON.parse(localStorage.getItem('txCache')||'[]');if(tc.length){var fk={};ALL.forEach(function(r){fk[(r.date||'')+'|'+(r.account||'')+'|'+r.amount]=1;});tc.forEach(function(r){var k=(r.date||'')+'|'+(r.account||'')+'|'+r.amount;if(fk[k])return;var rd=r._origDesc||r.description||r.payee||'';if(dM2[normVendor(rd)])r.description=dM2[normVendor(rd)];var _sc2=r.category||'';r.category='';if(_sc2==='Payroll & Income'){r.category=r.amount<0?'Payroll':'Income';}var nd3=normVendor(rd);if(catDescMap[nd3])r.category=catDescMap[nd3];if(catMap[k])r.category=catMap[k];ALL.push(r);});}localStorage.setItem('txCache',JSON.stringify(ALL));}catch(e){}}());document.getElementById('loading').style.display='none';document.getElementById('overview').classList.add('active');render();btn.disabled=false;btn.innerHTML='🔄 Sync';}).withFailureHandler(function(e){document.getElementById('loading').textContent='Error: '+e.message;btn.disabled=false;btn.innerHTML='🔄 Sync';}).getData(token||null);
+  google.script.run.withSuccessHandler(function(data){ALL=data.rows||[];LIVE_BAL=data.accounts||{};var catDescMap=JSON.parse(localStorage.getItem('catDescMap')||'{}');var catMap=JSON.parse(localStorage.getItem('catMap')||'{}');var dM2=JSON.parse(localStorage.getItem('descMap')||'{}');ALL.forEach(function(r){var _rawD=r.description||r.payee||'';r._origDesc=_rawD;var _sc=r.category||'';r.category='';if(_sc==='Payroll & Income'){r.category=r.amount<0?'Payroll':'Income';}(function(){var _nv0=normVendor(_rawD);var _dk=[_nv0,_nv0.replace(/#/g,'').replace(/\s{2,}/g,' ').trim(),_rawD.trim().toLowerCase(),_rawD.trim()];for(var _di=0;_di<_dk.length;_di++){if(dM2[_dk[_di]]){r.description=dM2[_dk[_di]];break;}}})();var nd2=normVendor(_rawD);if(catDescMap[nd2])r.category=catDescMap[nd2];var cKey=(r.date||'')+'|'+(r.account||'')+'|'+r.amount;if(catMap[cKey])r.category=catMap[cKey];});(function(){try{var tc=JSON.parse(localStorage.getItem('txCache')||'[]');if(tc.length){var fk={};ALL.forEach(function(r){fk[(r.date||'')+'|'+(r.account||'')+'|'+r.amount]=1;});tc.forEach(function(r){var k=(r.date||'')+'|'+(r.account||'')+'|'+r.amount;if(fk[k])return;var rd=r._origDesc||r.description||r.payee||'';if(dM2[normVendor(rd)])r.description=dM2[normVendor(rd)];var _sc2=r.category||'';r.category='';if(_sc2==='Payroll & Income'){r.category=r.amount<0?'Payroll':'Income';}var nd3=normVendor(rd);if(catDescMap[nd3])r.category=catDescMap[nd3];if(catMap[k])r.category=catMap[k];ALL.push(r);});}localStorage.setItem('txCache',JSON.stringify(ALL));}catch(e){}}());document.getElementById('loading').style.display='none';document.getElementById('overview').classList.add('active');renderMonthBtns();render();btn.disabled=false;btn.innerHTML='🔄 Sync';}).withFailureHandler(function(e){document.getElementById('loading').textContent='Error: '+e.message;btn.disabled=false;btn.innerHTML='🔄 Sync';}).getData(token||null);
 }
 (function(){
   var saved=localStorage.getItem('lastSync');if(saved){var s=document.getElementById('sync-status');s.textContent=saved;s.style.color='var(--pos)';}
