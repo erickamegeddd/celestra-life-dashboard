@@ -593,10 +593,15 @@ function renderTx(){
   if(de)rows=rows.filter(function(r){return r.date<=de;});
   if(taVal)rows=rows.filter(function(r){return r.account===taVal;});
   if(q)rows=rows.filter(function(r){return(r.description+r.payee+lbl(r.account)+r.category).toLowerCase().includes(q);});
+  // View-filtered accounts sorted alphabetically by label
+  var _viewAccts=Array.from(new Set(ALL.filter(function(r){
+    if(VIEW_PARAM==='rob'&&getGroup(r.account)==='Frank Personal')return false;
+    if(VIEW_PARAM==='frank'&&getGroup(r.account)==="Rob's Personal")return false;
+    return true;
+  }).map(function(r){return r.account||';'}))).filter(function(a){return a!==';';}).sort(function(a,b){return lbl(a).toLowerCase()<lbl(b).toLowerCase()?-1:lbl(a).toLowerCase()>lbl(b).toLowerCase()?1:0;});
   // Populate account filter dropdown
   if(ta&&ta.options.length<=1&&ALL.length>0){
-    var names=Array.from(new Set(ALL.map(function(r){return r.account;}))).sort();
-    names.forEach(function(nm){var o=document.createElement('option');o.value=nm;o.textContent=lbl(nm);ta.appendChild(o);});
+    _viewAccts.forEach(function(nm){var o=document.createElement('option');o.value=nm;o.textContent=lbl(nm);ta.appendChild(o);});
   }
   ['date','account','description','category','amount'].forEach(function(c){var el=document.getElementById('sort-'+c);if(el)el.textContent=SORT.col===c?(SORT.dir===1?'\u25b2':'\u25bc'):'';});
   if(SORT.col){rows=rows.slice().sort(function(a,b){var av,bv;if(SORT.col==='date'){av=a.date;bv=b.date;}else if(SORT.col==='account'){av=lbl(a.account).toLowerCase();bv=lbl(b.account).toLowerCase();}else if(SORT.col==='description'){av=(a.description||a.payee||'').toLowerCase();bv=(b.description||b.payee||'').toLowerCase();}else if(SORT.col==='category'){av=(a.category||'').toLowerCase();bv=(b.category||'').toLowerCase();}else{av=a.amount;bv=b.amount;}if(av<bv)return -SORT.dir;if(av>bv)return SORT.dir;return 0;});}
@@ -605,7 +610,7 @@ function renderTx(){
   (function(){
     var cfSelectors=[
       {id:'cf-date',vals:Array.from(new Set(ALL.map(function(r){return(r.date||'').slice(0,7);}))).filter(Boolean).sort().reverse(),lbl:function(v){return v;}},
-      {id:'cf-account',vals:Array.from(new Set(ALL.map(function(r){return r.account||'';}))).filter(Boolean).sort(function(a,b){return lbl(a)<lbl(b)?-1:1;}),lbl:function(v){return lbl(v);}},
+      {id:'cf-account',vals:_viewAccts,lbl:function(v){return lbl(v);}},
       {id:'cf-description',vals:Array.from(new Set(ALL.map(function(r){return r.description||r.payee||'';}))).filter(Boolean).sort(),lbl:function(v){return v;}},
       {id:'cf-category',vals:Array.from(new Set(ALL.map(function(r){return r.category||'';}))).filter(Boolean).sort(),lbl:function(v){return v;}}
     ];
