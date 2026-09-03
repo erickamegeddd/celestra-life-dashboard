@@ -721,10 +721,12 @@ function normVendor(s){return(s||'').replace(/\b[X]+[\dX]+\b/g,'').replace(/\b\d
 function renderRecurring(){
   var mNames=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   function moLabel(m){var p=m.split('-');return mNames[parseInt(p[1],10)-1]+' \''+p[0].slice(2);}
+  var _incCats=['Payroll','Income','Business Income','Other Income'];
   var rows=ALL.filter(function(r){
     if(VIEW_PARAM==='rob'&&getGroup(r.account)==='Frank Personal')return false;
     if(VIEW_PARAM==='frank'&&getGroup(r.account)==="Rob's Personal")return false;
     if(STATE.account){if(STATE.account.indexOf('__grp__')===0){if(getGroup(r.account)!==STATE.account.slice(7))return false;}else{if(r.account!==STATE.account)return false;}}
+    if(_incCats.indexOf(r.category||'')!==-1)return false;
     return true;
   });
   var vmap={};
