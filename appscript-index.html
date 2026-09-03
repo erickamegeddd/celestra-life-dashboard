@@ -198,6 +198,12 @@ td{padding:7px 9px;border-bottom:1px solid var(--line);white-space:nowrap;overfl
         <input type="search" id="tx-search" placeholder="Search desc, category…" oninput="renderTx()"/>
         <span id="tx-count" style="color:var(--muted);font-size:11px;margin-left:auto"></span>
       </div>
+      <div class="kpis" style="margin:0 0 12px">
+        <div class="card kpi"><div class="lbl">Total Spent</div><div class="val neg" id="k-tx-spent">—</div></div>
+        <div class="card kpi"><div class="lbl">Income</div><div class="val pos" id="k-tx-income">—</div></div>
+        <div class="card kpi"><div class="lbl">Net Cash Flow</div><div class="val" id="k-tx-net">—</div></div>
+        <div class="card kpi"><div class="lbl"># Transactions</div><div class="val" id="k-tx-count">—</div></div>
+      </div>
       <div class="month-btns" id="month-btns" style="margin:0 0 8px"></div>
       <div id="bulk-bar">
         <span id="bulk-count" style="font-weight:700;font-size:13px"></span>
@@ -617,6 +623,13 @@ function renderTx(){
   if(cfAcct)rows=rows.filter(function(r){return r.account===cfAcct;});
   if(cfDesc)rows=rows.filter(function(r){return(r.description||r.payee||'').toLowerCase()===cfDesc;});
   if(cfCat)rows=rows.filter(function(r){return(r.category||'').toLowerCase()===cfCat;});
+  // Tx-tab KPI bar — reflects fully filtered rows
+  (function(){var sp=0,inc=0;rows.forEach(function(r){if(r.amount<0)sp+=r.amount;else inc+=r.amount;});var net=inc+sp;
+    var ks=document.getElementById('k-tx-spent');if(ks)ks.textContent=usdAbs(sp);
+    var ki=document.getElementById('k-tx-income');if(ki)ki.textContent=usdAbs(inc);
+    var kn=document.getElementById('k-tx-net');if(kn){kn.textContent=(net>=0?'+':'-')+usdAbs(net);kn.className='val '+(net>=0?'pos':'neg');}
+    var kc=document.getElementById('k-tx-count');if(kc)kc.textContent=rows.length.toLocaleString();
+  })();
   document.getElementById('tx-count').textContent=rows.length.toLocaleString()+' transactions';
   var total=rows.length,pages=Math.max(1,Math.ceil(total/PAGE));
   if(STATE.page>pages)STATE.page=1;
