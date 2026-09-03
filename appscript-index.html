@@ -353,7 +353,7 @@ function renderBar(rows){
 function renderDonut(rows){
   var spent=rows.filter(function(r){return r.amount<0;});
   var total=spent.reduce(function(s,r){return s+(-r.amount);},0);
-  var map={};spent.forEach(function(r){map[r.category]=(map[r.category]||0)+(-r.amount);});
+  var map={};spent.forEach(function(r){if(!r.category)return;map[r.category]=(map[r.category]||0)+(-r.amount);});
   var entries=Object.entries(map).sort(function(a,b){return b[1]-a[1];});
   var labels=entries.map(function(e){return e[0];});
   var cols=labels.map(function(_,i){return COLORS[i%COLORS.length];});
