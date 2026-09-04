@@ -284,6 +284,7 @@ function lbl(nm){return ACCT_LABELS[nm]||nm;}
 var ALL=[],LIVE_BAL={},STATE={period:180,account:'',catFilter:null,page:1,customStart:'',customEnd:''};
 var SORT={col:null,dir:1};
 var VIEW_PARAM=localStorage.getItem('dashView')||'';
+var HIDDEN_ACCTS=['World Legend'];function isHiddenAcct(nm){for(var i=0;i<HIDDEN_ACCTS.length;i++){if((nm||'').indexOf(HIDDEN_ACCTS[i])!==-1)return true;}return false;}
 var FRANK_KEYS=['8238','6469','9575','0928','5917','5150','8619','1539','4005','1009','9225','566','728','3988','3438','3439','9785','340','707'];
 function isFrankAcct(nm){var n=(nm||'').toLowerCase();for(var i=0;i<FRANK_KEYS.length;i++){if(n.indexOf('('+FRANK_KEYS[i]+')')!==-1)return true;}return false;}
 var ALL_NAMED_KEYS=['8808','3000','9613','1360','1378','3292','1007','6576','6852','6860','8238','6469','9575','0928','5917','5150','8619','1539','4005','1009','9225','566','728','3988','3438','3439','9785','340','707'];
@@ -485,7 +486,7 @@ function renderAccounts(){
   var groups={"Rob's Personal":[],'Perseverance':[],'PayDiverse/Elm':[],'Celestra/Fortuna':[],'Frank Personal':[]};
   var _txAccts=new Set(ALL.map(function(r){return r.account||'';}));
   var _ns={};Object.keys(LIVE_BAL).forEach(function(nm){if(ACCT_LABELS[nm]||_txAccts.has(nm))_ns[nm]=1;});ALL.forEach(function(r){if(r.account)_ns[r.account]=1;});Object.keys(ACCT_LABELS).forEach(function(nm){_ns[nm]=1;});var names=Object.keys(_ns);
-  names.forEach(function(nm){if(VIEW_PARAM==='rob'&&getGroup(nm)==='Frank Personal')return;if(VIEW_PARAM==='frank'&&getGroup(nm)==="Rob's Personal")return;var g=getGroup(nm);if(!groups[g])groups[g]=[];groups[g].push(nm);});
+  names.forEach(function(nm){if(isHiddenAcct(nm))return;if(VIEW_PARAM==='rob'&&getGroup(nm)==='Frank Personal')return;if(VIEW_PARAM==='frank'&&getGroup(nm)==="Rob's Personal")return;var g=getGroup(nm);if(!groups[g])groups[g]=[];groups[g].push(nm);});
   var html='',gi=0;
   Object.entries(groups).forEach(function(e){var grp=e[0],accts=e[1];if(!accts.length)return;if(VIEW_PARAM==='rob'&&grp==='Frank Personal')return;if(VIEW_PARAM==='frank'&&grp==="Rob's Personal")return;var gid='acct-g-'+(gi++);html+='<div class="acct-group-label" onclick="toggleAG(this)" data-gid="'+gid+'">'+esc(grp)+'<span>&#9654;</span></div><div id="'+gid+'" style="display:none">'+renderTypeSplit(accts)+'</div>';});
   content.innerHTML=html||'<div style="color:var(--muted);text-align:center;padding:32px">Sync to load account data.</div>';
@@ -629,6 +630,7 @@ function renderTx(){
   if(q)rows=rows.filter(function(r){return(r.description+r.payee+lbl(r.account)+r.category).toLowerCase().includes(q);});
   // View-filtered accounts sorted alphabetically by label
   var _viewAccts=Array.from(new Set(ALL.filter(function(r){
+    if(isHiddenAcct(r.account))return false;
     if(VIEW_PARAM==='rob'&&getGroup(r.account)==='Frank Personal')return false;
     if(VIEW_PARAM==='frank'&&getGroup(r.account)==="Rob's Personal")return false;
     return true;
@@ -760,6 +762,7 @@ function renderRecurring(){
   (function(){
     var sel=document.getElementById('rec-acct-filter');if(!sel||sel.options.length>1)return;
     var _ra=Array.from(new Set(ALL.filter(function(r){
+      if(isHiddenAcct(r.account))return false;
       if(VIEW_PARAM==='rob'&&getGroup(r.account)==='Frank Personal')return false;
       if(VIEW_PARAM==='frank'&&getGroup(r.account)==="Rob's Personal")return false;
       return true;
