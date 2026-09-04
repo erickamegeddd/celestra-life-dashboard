@@ -483,7 +483,8 @@ function getGroup(nm){var n=nm.toLowerCase();for(var g in ACCT_GROUPS){var keys=
 function renderAccounts(){
   var content=document.getElementById('acct-content');if(!content)return;
   var groups={"Rob's Personal":[],'Perseverance':[],'PayDiverse/Elm':[],'Celestra/Fortuna':[],'Frank Personal':[]};
-  var _ns={};Object.keys(LIVE_BAL).forEach(function(nm){_ns[nm]=1;});ALL.forEach(function(r){if(r.account)_ns[r.account]=1;});Object.keys(ACCT_LABELS).forEach(function(nm){_ns[nm]=1;});var names=Object.keys(_ns);
+  var _txAccts=new Set(ALL.map(function(r){return r.account||'';}));
+  var _ns={};Object.keys(LIVE_BAL).forEach(function(nm){if(ACCT_LABELS[nm]||_txAccts.has(nm))_ns[nm]=1;});ALL.forEach(function(r){if(r.account)_ns[r.account]=1;});Object.keys(ACCT_LABELS).forEach(function(nm){_ns[nm]=1;});var names=Object.keys(_ns);
   names.forEach(function(nm){if(VIEW_PARAM==='rob'&&getGroup(nm)==='Frank Personal')return;if(VIEW_PARAM==='frank'&&getGroup(nm)==="Rob's Personal")return;var g=getGroup(nm);if(!groups[g])groups[g]=[];groups[g].push(nm);});
   var html='',gi=0;
   Object.entries(groups).forEach(function(e){var grp=e[0],accts=e[1];if(!accts.length)return;if(VIEW_PARAM==='rob'&&grp==='Frank Personal')return;if(VIEW_PARAM==='frank'&&grp==="Rob's Personal")return;var gid='acct-g-'+(gi++);html+='<div class="acct-group-label" onclick="toggleAG(this)" data-gid="'+gid+'">'+esc(grp)+'<span>&#9654;</span></div><div id="'+gid+'" style="display:none">'+renderTypeSplit(accts)+'</div>';});
