@@ -382,6 +382,7 @@ function clearCustomRange(){
   STATE.page=1;render();
 }
 
+function reapplyLocalRules(){var cdM=JSON.parse(localStorage.getItem('catDescMap')||'{}');var ctM=JSON.parse(localStorage.getItem('catMap')||'{}');ALL.forEach(function(r){var nd=normVendor(r._origDesc||r.description||r.payee||'');if(cdM[nd])r.category=cdM[nd];var ck=(r.date||'')+'|'+(r.account||'')+'|'+r.amount;if(ctM[ck])r.category=ctM[ck];});}
 function render(){var rows=filtered();renderKPIs(rows);renderBar(rows);renderDonut(rows);renderIncomeDonut(rows);renderAccounts();renderTx();var tr=document.getElementById('tab-rec');if(tr&&tr.style.display!=='none')renderRecurring();}
 function renderKPIs(rows){
   var spent=0,income=0;
@@ -763,6 +764,7 @@ function _applyCatPreview(checked,unchecked,nc,normD,ed){
   google.script.run.withSuccessHandler(function(){}).withFailureHandler(function(){}).setCatRule(normD,nc);
   var tot=checked.length+unchecked.length;
   toast(tot===0?'Category saved':(checked.length===tot?'Category saved':'Applied to '+checked.length+' of '+tot+' transactions'));
+  reapplyLocalRules();
   render();
 }
 function _applyDescPreview(checked,nd,normD,ed){
