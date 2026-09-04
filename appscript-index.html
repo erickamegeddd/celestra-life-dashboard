@@ -196,6 +196,7 @@ td{padding:7px 9px;border-bottom:1px solid var(--line);white-space:nowrap;overfl
         <input type="date" id="d-end" onchange="renderTx()"/>
         <select id="tx-acct-filter" class="flt" onchange="renderTx()" style="font-size:11px;padding:4px 20px 4px 7px"><option value="">All accounts</option></select>
         <input type="search" id="tx-search" placeholder="Search desc, category…" oninput="renderTx()"/>
+        <button onclick="clearTxFilters()" style="font-size:11px;padding:3px 10px;border:1px solid var(--line);background:#fff;border-radius:6px;cursor:pointer;color:var(--muted);white-space:nowrap">✕ Clear filters</button>
         <span id="tx-count" style="color:var(--muted);font-size:11px;margin-left:auto"></span>
       </div>
       <div class="kpis" style="margin:0 0 12px">
@@ -666,6 +667,7 @@ function renderTx(){
     cfSelectors.forEach(function(cfg){
       var el=document.getElementById(cfg.id);
       if(!el||el.options.length>1)return;
+      if(cfg.id==='cf-category'){var no=document.createElement('option');no.value='__none__';no.textContent='— None (uncategorized) —';el.appendChild(no);}
       cfg.vals.forEach(function(v){var o=document.createElement('option');o.value=v;o.textContent=cfg.lbl(v);el.appendChild(o);});
     });
   })();
@@ -676,7 +678,7 @@ function renderTx(){
   if(cfDate)rows=rows.filter(function(r){return(r.date||'').slice(0,7)===cfDate;});
   if(cfAcct)rows=rows.filter(function(r){return r.account===cfAcct;});  // cf-account always individual accounts
   if(cfDesc)rows=rows.filter(function(r){return(r.description||r.payee||'').toLowerCase()===cfDesc;});
-  if(cfCat)rows=rows.filter(function(r){return(r.category||'').toLowerCase()===cfCat;});
+  if(cfCat==='__none__')rows=rows.filter(function(r){return!(r.category||'');});else if(cfCat)rows=rows.filter(function(r){return(r.category||'').toLowerCase()===cfCat;});
   // Tx-tab KPI bar — reflects fully filtered rows
   (function(){var sp=0,inc=0;rows.forEach(function(r){if(r.amount<0)sp+=r.amount;else inc+=r.amount;});var net=inc+sp;
     var ks=document.getElementById('k-tx-spent');if(ks)ks.textContent=usdAbs(sp);
@@ -697,6 +699,12 @@ function renderTx(){
   document.getElementById('pager').innerHTML='<button '+(STATE.page<=1?'disabled':'')+' onclick="STATE.page--;renderTx()">‹ Prev</button><span>Page '+STATE.page+' of '+pages+' ('+total.toLocaleString()+')</span><button '+(STATE.page>=pages?'disabled':'')+' onclick="STATE.page++;renderTx()">Next ›</button>';
 }
 function sortBy(col){if(SORT.col===col){SORT.dir*=-1;}else{SORT.col=col;SORT.dir=1;}STATE.page=1;renderTx();}
+function clearTxFilters(){
+  var ids=['d-start','d-end','tx-search','tx-acct-filter','cf-date','cf-account','cf-description','cf-category'];
+  ids.forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+  STATE.page=1;STATE.customStart='';STATE.customEnd='';
+  renderMonthBtns();renderTx();
+}
 
 function editCat(ev,td){
   ev.stopPropagation();
