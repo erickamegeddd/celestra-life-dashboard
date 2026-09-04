@@ -740,19 +740,29 @@ function applyPreviewChanges(){
 function _applyCatPreview(checked,unchecked,nc,normD,ed){
   var cdMap=JSON.parse(localStorage.getItem('catDescMap')||'{}');
   var catMap=JSON.parse(localStorage.getItem('catMap')||'{}');
-  checked.forEach(function(r){
-    r.category=nc;
+  // Build a set of unchecked row keys so we can identify them
+  var uncheckedKeys={};
+  for(var ui=0;ui<unchecked.length;ui++){
+    var ur=unchecked[ui];
+    var urk=(ur.date||'')+'|'+(ur.account||'')+'|'+Number(ur.amount||0);
+    uncheckedKeys[urk]=ur.category;
+    catMap[urk]=ur.category; // lock in original for unchecked
+  }
+  // Update ALL directly — same pattern as old editCat
+  ALL.forEach(function(r){
+    var ro=r._origDesc||r.description||r.payee||'';
+    if(normVendor(ro)!==normD)return;
     var rk=(r.date||'')+'|'+(r.account||'')+'|'+Number(r.amount||0);
+    if(uncheckedKeys.hasOwnProperty(rk))return; // skip unchecked rows
+    r.category=nc;
     if(nc)catMap[rk]=nc;else delete catMap[rk];
     if(r.id)google.script.run.withSuccessHandler(function(){}).withFailureHandler(function(){}).updateCategory(r.id,nc);
   });
-  unchecked.forEach(function(r){var rk=(r.date||'')+'|'+(r.account||'')+'|'+Number(r.amount||0);catMap[rk]=r.category;});
   if(nc)cdMap[normD]=nc;else delete cdMap[normD];
   localStorage.setItem('catDescMap',JSON.stringify(cdMap));localStorage.setItem('catMap',JSON.stringify(catMap));
   google.script.run.withSuccessHandler(function(){}).withFailureHandler(function(){}).setCatRule(normD,nc);
-  if(ed&&ed.td){ed.td.innerHTML=catTag(nc)+'<span class="edit-hint">✏</span>';ed.td.setAttribute('data-cat',nc);}
   var tot=checked.length+unchecked.length;
-  toast(checked.length===tot?'Category saved':(nc?'Category applied to '+checked.length+'/'+tot+' transactions':'Category cleared for '+checked.length+'/'+tot+' transactions'));
+  toast(tot===0?'Category saved':(checked.length===tot?'Category saved':'Applied to '+checked.length+' of '+tot+' transactions'));
   render();
 }
 function _applyDescPreview(checked,nd,normD,ed){
