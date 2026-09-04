@@ -336,10 +336,10 @@ function applyBulkCat(){
     }
     localStorage.setItem('catMap',JSON.stringify(catMap));
     localStorage.setItem('catDescMap',JSON.stringify(cdMap));
-    // setCatRule for each affected normD using plain for-in (no Set.forEach)
+    // setCatRule for each affected normD (wrapped in try-catch in case not deployed)
     for(var nd in affNormDs){
       if(affNormDs.hasOwnProperty(nd)){
-        (function(n){google.script.run.withSuccessHandler(function(){}).withFailureHandler(function(){}).setCatRule(n,nc);})(nd);
+        try{(function(n){google.script.run.withSuccessHandler(function(){}).withFailureHandler(function(){}).setCatRule(n,nc);})(nd);}catch(sre){}
       }
     }
     BULK_SEL.clear();_bulkCatVal=null;
@@ -827,7 +827,7 @@ function _applyCatPreview(checked,unchecked,nc,normD,ed){
   if(nc)cdMap[normD]=nc;else delete cdMap[normD];
   localStorage.setItem('catDescMap',JSON.stringify(cdMap));
   localStorage.setItem('catMap',JSON.stringify(catMap));
-  google.script.run.withSuccessHandler(function(){}).withFailureHandler(function(){}).setCatRule(normD,nc);
+  try{google.script.run.withSuccessHandler(function(){}).withFailureHandler(function(){}).setCatRule(normD,nc);}catch(sre){}
   var tot=checked.length+unchecked.length;
   toast(checked.length===tot?'Category saved':'Applied to '+checked.length+' of '+tot+' transactions');
   setTimeout(function(){loadData();},800);
