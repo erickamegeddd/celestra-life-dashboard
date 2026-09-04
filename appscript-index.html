@@ -734,6 +734,7 @@ function applyPreviewChanges(){
     if(isNaN(_idx)||_idx<0||_idx>=_preview.matches.length)continue;
     (_cb.checked?checked:unchecked).push(_preview.matches[_idx]);
   }
+  toast('DBG cbs='+cbs.length+' chk='+checked.length+' nc='+_preview.nc+' nd='+_preview.normD.slice(0,12));
   closePreviewModal();
   if(_preview.type==='cat')_applyCatPreview(checked,unchecked,_preview.nc,_preview.normD,_preview.editData);
   else _applyDescPreview(checked,_preview.nc,_preview.normD,_preview.editData);
