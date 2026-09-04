@@ -747,34 +747,30 @@ function applyPreviewChanges(){
 function _applyCatPreview(checked,unchecked,nc,normD,ed){
   var cdMap=JSON.parse(localStorage.getItem('catDescMap')||'{}');
   var catMap=JSON.parse(localStorage.getItem('catMap')||'{}');
-  // Build unchecked keys set
-  var uncheckedKeys={};
-  for(var ui=0;ui<unchecked.length;ui++){var ur=unchecked[ui];var urk=(ur.date||'')+'|'+(ur.account||'')+'|'+Number(ur.amount||0);uncheckedKeys[urk]=ur.category;catMap[urk]=ur.category;}
-  // Update ALL in memory (same as old editCat)
-  ALL.forEach(function(r){
-    var ro=r._origDesc||r.description||r.payee||'';
-    if(normVendor(ro)!==normD)return;
-    var rk=(r.date||'')+'|'+(r.account||'')+'|'+Number(r.amount||0);
-    if(uncheckedKeys.hasOwnProperty(rk))return;
+  // Build cell lookup by data-id for direct DOM update
+  var catCells=document.querySelectorAll('#tx-body .cat-cell');
+  var cellById={};
+  for(var ci=0;ci<catCells.length;ci++){cellById[catCells[ci].getAttribute('data-id')||'']=catCells[ci];}
+  // Lock unchecked rows to their original category
+  for(var ui=0;ui<unchecked.length;ui++){
+    var ur=unchecked[ui];
+    var urk=(ur.date||'')+'|'+(ur.account||'')+'|'+Number(ur.amount||0);
+    catMap[urk]=ur.category;
+  }
+  // Apply to checked rows — update ALL + direct DOM + server
+  for(var ci2=0;ci2<checked.length;ci2++){
+    var r=checked[ci2];
     r.category=nc;
+    var rk=(r.date||'')+'|'+(r.account||'')+'|'+Number(r.amount||0);
     if(nc)catMap[rk]=nc;else delete catMap[rk];
+    var ctd=cellById[r.id||''];
+    if(ctd){ctd.innerHTML=catTag(nc)+'<span class="edit-hint">✏</span>';ctd.setAttribute('data-cat',nc);}
     if(r.id)google.script.run.withSuccessHandler(function(){}).withFailureHandler(function(){}).updateCategory(r.id,nc);
-  });
+  }
   if(nc)cdMap[normD]=nc;else delete cdMap[normD];
   localStorage.setItem('catDescMap',JSON.stringify(cdMap));
   localStorage.setItem('catMap',JSON.stringify(catMap));
   google.script.run.withSuccessHandler(function(){}).withFailureHandler(function(){}).setCatRule(normD,nc);
-  // Directly update visible DOM cells (same as old editCat — this is what makes it show immediately)
-  var allCatCells=document.getElementById('tx-body').querySelectorAll('.cat-cell');
-  for(var ci=0;ci<allCatCells.length;ci++){
-    var ctd=allCatCells[ci];
-    var orig=ctd.getAttribute('data-orig')||'';
-    if(normVendor(orig)!==normD)continue;
-    var rk2=(ctd.getAttribute('data-date')||'')+'|'+(ctd.getAttribute('data-account')||'')+'|'+Number(ctd.getAttribute('data-amount')||0);
-    if(uncheckedKeys.hasOwnProperty(rk2))continue;
-    ctd.innerHTML=catTag(nc)+'<span class="edit-hint">✏</span>';
-    ctd.setAttribute('data-cat',nc);
-  }
   var tot=checked.length+unchecked.length;
   toast(checked.length===tot?'Category saved':'Applied to '+checked.length+' of '+tot+' transactions');
   renderDonut(filtered());
@@ -796,14 +792,7 @@ function editCat(ev,td){
   var cKey=rDate+'|'+rAcct+'|'+rAmt;
   var normD=normVendor(rOrig);
   openCatPicker(td,cur,function(nc){
-    td.innerHTML=catTag(nc)+'<span class="edit-hint">✏</span>';
-    td.setAttribute('data-cat',nc);
-    var cdMap=JSON.parse(localStorage.getItem('catDescMap')||'{}');cdMap[normD]=nc;localStorage.setItem('catDescMap',JSON.stringify(cdMap));
-    var catMap=JSON.parse(localStorage.getItem('catMap')||'{}');catMap[cKey]=nc;localStorage.setItem('catMap',JSON.stringify(catMap));
-    ALL.forEach(function(r){var ro=r._origDesc||r.description||r.payee||'';if(normVendor(ro)===normD)r.category=nc;});
-    renderDonut(filtered());toast('Category saved');
-    google.script.run.withSuccessHandler(function(){}).withFailureHandler(function(){}).setCatRule(normD,nc);
-    if(id)google.script.run.withSuccessHandler(function(){}).withFailureHandler(function(){}).updateCategory(id,nc);
+    showPreviewModal('cat',normD,nc,{td:td,id:id,cKey:cKey});
   });
 }
 function toggleAG(el){var gid=el.getAttribute('data-gid');var d=document.getElementById(gid);var ch=el.querySelector('span');if(!d)return;var open=d.style.display!=='none';d.style.display=open?'none':'block';if(ch)ch.textContent=open?'▶':'▼';}
