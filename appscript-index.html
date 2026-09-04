@@ -732,7 +732,12 @@ function closePreviewModal(){document.getElementById('preview-overlay').style.di
 function applyPreviewChanges(){
   var cbs=document.querySelectorAll('#pm-list input[type=checkbox]');
   var checked=[],unchecked=[];
-  cbs.forEach(function(cb){var idx=parseInt(cb.getAttribute('data-pm-idx'));(cb.checked?checked:unchecked).push(_preview.matches[idx]);});
+  for(var _pi=0;_pi<cbs.length;_pi++){
+    var _cb=cbs[_pi];
+    var _idx=parseInt(_cb.getAttribute('data-pm-idx'));
+    if(isNaN(_idx)||_idx<0||_idx>=_preview.matches.length)continue;
+    (_cb.checked?checked:unchecked).push(_preview.matches[_idx]);
+  }
   closePreviewModal();
   if(_preview.type==='cat')_applyCatPreview(checked,unchecked,_preview.nc,_preview.normD,_preview.editData);
   else _applyDescPreview(checked,_preview.nc,_preview.normD,_preview.editData);
@@ -753,7 +758,7 @@ function _applyCatPreview(checked,unchecked,nc,normD,ed){
   if(ed&&ed.td){ed.td.innerHTML=catTag(nc)+'<span class="edit-hint">✏</span>';ed.td.setAttribute('data-cat',nc);}
   var tot=checked.length+unchecked.length;
   toast(checked.length===tot?'Category saved':(nc?'Category applied to '+checked.length+'/'+tot+' transactions':'Category cleared for '+checked.length+'/'+tot+' transactions'));
-  renderDonut(filtered());renderTx();
+  render();
 }
 function _applyDescPreview(checked,nd,normD,ed){
   var dMap=JSON.parse(localStorage.getItem('descMap')||'{}');dMap[normD]=nd;localStorage.setItem('descMap',JSON.stringify(dMap));
