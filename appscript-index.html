@@ -789,9 +789,15 @@ function renderRecurring(){
     var key=normVendor(r._origDesc||r.description||r.payee||'');if(!key)return;
     if(!vmap[key]){var _orig2=(r._origDesc||r.payee||'').trim();var _cur2=(r.description||r.payee||'').trim();var _disp=(_cur2&&_cur2!==_orig2)?_cur2:_orig2.replace(/\b[X]+[\dX]+\b/g,'').replace(/\b\d{5,}\b/g,'').replace(/[_]+/g,' ').replace(/\s{2,}/g,' ').trim();vmap[key]={display:_disp||_orig2,category:r.category||'',months:{},accts:{},total:0};}
     var mo=(r.date||'').slice(0,7);
-    vmap[key].months[mo]=(vmap[key].months[mo]||0)+Math.abs(r.amount);
+    vmap[key].months[mo]=(vmap[key].months[mo]||0)+r.amount;
     var _ra=r.account||'';vmap[key].accts[_ra]=(vmap[key].accts[_ra]||0)+1;
-    vmap[key].total+=Math.abs(r.amount);
+  });
+  // Remove months where net >= 0 (fully refunded), then recalculate total
+  Object.values(vmap).forEach(function(v){
+    Object.keys(v.months).forEach(function(mo){if(v.months[mo]>=0)delete v.months[mo];});
+    v.total=Object.keys(v.months).reduce(function(s,mo){return s+Math.abs(v.months[mo]);},0);
+    // Convert to absolute for display
+    Object.keys(v.months).forEach(function(mo){v.months[mo]=Math.abs(v.months[mo]);});
   });
   var recurring=Object.values(vmap).filter(function(v){return Object.keys(v.months).length>=2;});
   recurring.sort(function(a,b){
