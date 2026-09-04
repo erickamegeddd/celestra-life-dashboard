@@ -702,11 +702,6 @@ function clearTxFilters(){
 var _preview={type:'',normD:'',nc:'',matches:[],editData:{}};
 function showPreviewModal(type,normD,nc,editData){
   var matches=ALL.filter(function(r){return normVendor(r._origDesc||r.description||r.payee||'')===normD;});
-  if(matches.length<=1){
-    if(type==='cat')_applyCatPreview(matches,[], nc,normD,editData);
-    else _applyDescPreview(matches,nc,normD,editData);
-    return;
-  }
   _preview={type:type,normD:normD,nc:nc,matches:matches,editData:editData};
   var tEl=document.getElementById('pm-title'),sEl=document.getElementById('pm-sub'),lEl=document.getElementById('pm-list');
   if(type==='cat'){tEl.innerHTML='Apply '+(nc?catTag(nc):'<em style="color:var(--muted)">None</em>')+' to matching transactions?';}
