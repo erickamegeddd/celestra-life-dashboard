@@ -734,7 +734,6 @@ function applyPreviewChanges(){
     if(isNaN(_idx)||_idx<0||_idx>=_preview.matches.length)continue;
     (_cb.checked?checked:unchecked).push(_preview.matches[_idx]);
   }
-  toast('DBG cbs='+cbs.length+' chk='+checked.length+' nc='+_preview.nc+' nd='+_preview.normD.slice(0,12));
   closePreviewModal();
   if(_preview.type==='cat')_applyCatPreview(checked,unchecked,_preview.nc,_preview.normD,_preview.editData);
   else _applyDescPreview(checked,_preview.nc,_preview.normD,_preview.editData);
@@ -742,31 +741,37 @@ function applyPreviewChanges(){
 function _applyCatPreview(checked,unchecked,nc,normD,ed){
   var cdMap=JSON.parse(localStorage.getItem('catDescMap')||'{}');
   var catMap=JSON.parse(localStorage.getItem('catMap')||'{}');
-  // Build a set of unchecked row keys so we can identify them
+  // Build unchecked keys set
   var uncheckedKeys={};
-  for(var ui=0;ui<unchecked.length;ui++){
-    var ur=unchecked[ui];
-    var urk=(ur.date||'')+'|'+(ur.account||'')+'|'+Number(ur.amount||0);
-    uncheckedKeys[urk]=ur.category;
-    catMap[urk]=ur.category; // lock in original for unchecked
-  }
-  // Update ALL directly — same pattern as old editCat
+  for(var ui=0;ui<unchecked.length;ui++){var ur=unchecked[ui];var urk=(ur.date||'')+'|'+(ur.account||'')+'|'+Number(ur.amount||0);uncheckedKeys[urk]=ur.category;catMap[urk]=ur.category;}
+  // Update ALL in memory (same as old editCat)
   ALL.forEach(function(r){
     var ro=r._origDesc||r.description||r.payee||'';
     if(normVendor(ro)!==normD)return;
     var rk=(r.date||'')+'|'+(r.account||'')+'|'+Number(r.amount||0);
-    if(uncheckedKeys.hasOwnProperty(rk))return; // skip unchecked rows
+    if(uncheckedKeys.hasOwnProperty(rk))return;
     r.category=nc;
     if(nc)catMap[rk]=nc;else delete catMap[rk];
     if(r.id)google.script.run.withSuccessHandler(function(){}).withFailureHandler(function(){}).updateCategory(r.id,nc);
   });
   if(nc)cdMap[normD]=nc;else delete cdMap[normD];
-  localStorage.setItem('catDescMap',JSON.stringify(cdMap));localStorage.setItem('catMap',JSON.stringify(catMap));
+  localStorage.setItem('catDescMap',JSON.stringify(cdMap));
+  localStorage.setItem('catMap',JSON.stringify(catMap));
   google.script.run.withSuccessHandler(function(){}).withFailureHandler(function(){}).setCatRule(normD,nc);
-  var _dbgMatch=ALL.filter(function(r){return normVendor(r._origDesc||r.description||r.payee||'')===normD;});
-  toast('INSIDE: found='+_dbgMatch.length+' cat='+(_dbgMatch[0]?_dbgMatch[0].category:'none'));
-  reapplyLocalRules();
-  render();
+  // Directly update visible DOM cells (same as old editCat — this is what makes it show immediately)
+  var allCatCells=document.getElementById('tx-body').querySelectorAll('.cat-cell');
+  for(var ci=0;ci<allCatCells.length;ci++){
+    var ctd=allCatCells[ci];
+    var orig=ctd.getAttribute('data-orig')||'';
+    if(normVendor(orig)!==normD)continue;
+    var rk2=(ctd.getAttribute('data-date')||'')+'|'+(ctd.getAttribute('data-account')||'')+'|'+Number(ctd.getAttribute('data-amount')||0);
+    if(uncheckedKeys.hasOwnProperty(rk2))continue;
+    ctd.innerHTML=catTag(nc)+'<span class="edit-hint">✏</span>';
+    ctd.setAttribute('data-cat',nc);
+  }
+  var tot=checked.length+unchecked.length;
+  toast(checked.length===tot?'Category saved':'Applied to '+checked.length+' of '+tot+' transactions');
+  renderDonut(filtered());
 }
 function _applyDescPreview(checked,nd,normD,ed){
   var dMap=JSON.parse(localStorage.getItem('descMap')||'{}');dMap[normD]=nd;localStorage.setItem('descMap',JSON.stringify(dMap));
