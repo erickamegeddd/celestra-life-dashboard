@@ -298,12 +298,27 @@ function updateBulkBar(){var bar=document.getElementById('bulk-bar');var cnt=doc
 function clearBulkSel(){BULK_SEL.clear();document.querySelectorAll('#tx-body .row-cb').forEach(function(cb){cb.checked=false;});var mcb=document.getElementById('cb-all');if(mcb)mcb.checked=false;_bulkCatVal=null;var ab=document.getElementById('bulk-apply-btn');if(ab){ab.style.opacity='0.45';ab.style.cursor='not-allowed';}updateBulkBar();}
 function applyBulkCat(){if(_bulkCatVal===null){var btn=document.getElementById('bulk-cat-btn');if(btn)openBulkCatPicker(btn);return;}var nc=_bulkCatVal;var cdMap=JSON.parse(localStorage.getItem('catDescMap')||'{}');var catMap=JSON.parse(localStorage.getItem('catMap')||'{}');var affectedDescs=new Set();var selKeys=Array.from(BULK_SEL);ALL.forEach(function(r){var ck=(r.date||'')+'|'+(r.account||'')+'|'+Number(r.amount||0)+'|'+(r._origDesc||r.description||r.payee||'');if(selKeys.indexOf(ck)<0)return;var rk=(r.date||'')+'|'+(r.account||'')+'|'+Number(r.amount||0);var normD=normVendor(r._origDesc||r.description||r.payee||'');affectedDescs.add(normD);if(nc){catMap[rk]=nc;cdMap[normD]=nc;}else{delete catMap[rk];delete cdMap[normD];}if(r.id)google.script.run.withSuccessHandler(function(){}).withFailureHandler(function(){}).updateCategory(r.id,nc);});localStorage.setItem('catMap',JSON.stringify(catMap));localStorage.setItem('catDescMap',JSON.stringify(cdMap));affectedDescs.forEach(function(nd){google.script.run.withSuccessHandler(function(){}).withFailureHandler(function(){}).setCatRule(nd,nc);});// Update ALL in memory
 ALL.forEach(function(r){var normD=normVendor(r._origDesc||r.description||r.payee||'');if(affectedDescs.has(normD))r.category=nc;});
-// Direct DOM: traverse from each checked checkbox to its row's cat-cell (most reliable)
-var _txBody=document.getElementById('tx-body');
-if(_txBody){var _rows=_txBody.rows;for(var _ri=0;_ri<_rows.length;_ri++){var _row=_rows[_ri];var _cb=_row.cells&&_row.cells[0]&&_row.cells[0].getElementsByTagName('input')[0];if(!_cb||!_cb.checked)continue;var _catCell=_row.cells[4];if(_catCell){_catCell.innerHTML=catTag(nc)+'<span class="edit-hint">✏</span>';_catCell.setAttribute('data-cat',nc);}}}
-// Clear checkboxes
+// Direct DOM: traverse from each checked checkbox to its row's cat-cell
+try{
+  var _txBody=document.getElementById('tx-body');
+  if(_txBody&&_txBody.rows){
+    var _rows=_txBody.rows;
+    for(var _ri=0;_ri<_rows.length;_ri++){
+      try{
+        var _row=_rows[_ri];
+        if(!_row||!_row.cells||_row.cells.length<5)continue;
+        var _cbs2=_row.cells[0].getElementsByTagName('input');
+        if(!_cbs2||!_cbs2[0]||!_cbs2[0].checked)continue;
+        _row.cells[4].innerHTML=catTag(nc)+'<span class="edit-hint">✏</span>';
+        _row.cells[4].setAttribute('data-cat',nc);
+      }catch(_re){}
+    }
+    // Clear checkboxes
+    var _allInputs=_txBody.getElementsByTagName('input');
+    for(var _ii=0;_ii<_allInputs.length;_ii++){if(_allInputs[_ii].type==='checkbox')_allInputs[_ii].checked=false;}
+  }
+}catch(_e){}
 BULK_SEL.clear();_bulkCatVal=null;
-if(_txBody){var _cbs=_txBody.getElementsByTagName('input');for(var _cbi=0;_cbi<_cbs.length;_cbi++){if(_cbs[_cbi].type==='checkbox')_cbs[_cbi].checked=false;}}
 var _mcb=document.getElementById('cb-all');if(_mcb)_mcb.checked=false;
 var dot=document.getElementById('bulk-cat-dot'),lbl=document.getElementById('bulk-cat-label');if(dot)dot.style.background='rgba(255,255,255,.35)';if(lbl)lbl.textContent='— Choose category —';
 var _abtn=document.getElementById('bulk-apply-btn');if(_abtn){_abtn.style.opacity='0.45';_abtn.style.cursor='not-allowed';}
