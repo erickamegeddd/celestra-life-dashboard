@@ -606,10 +606,16 @@ function editDesc(ev,td){
       var nd=inp.value.trim();
       if(!nd||nd===cur){inp.blur();return;}
       _descSaved=true;
-      var _normKey=normVendor(td.getAttribute('data-orig')||cur);
       td.innerHTML=esc(nd)+'<span class="edit-hint">✏</span>';
       td.setAttribute('data-desc',nd);
-      showPreviewModal('desc',_normKey,nd,{cur:cur,td:td});
+      var _normKey=normVendor(td.getAttribute('data-orig')||cur);
+      ALL.forEach(function(r){var _rOrig=r._origDesc||(r.description||r.payee||'');if(normVendor(_rOrig)===_normKey)r.description=nd;});
+      var dMap=JSON.parse(localStorage.getItem('descMap')||'{}');
+      var origDesc=td.getAttribute('data-orig')||cur;var normCur=normVendor(origDesc);dMap[normCur]=nd;
+      localStorage.setItem('descMap',JSON.stringify(dMap));
+      toast('Description saved');
+      google.script.run.withFailureHandler(function(){}).renameDesc(cur,nd);
+      render();
     }
   };
   inp.focus();inp.select();
@@ -790,7 +796,14 @@ function editCat(ev,td){
   var cKey=rDate+'|'+rAcct+'|'+rAmt;
   var normD=normVendor(rOrig);
   openCatPicker(td,cur,function(nc){
-    showPreviewModal('cat',normD,nc,{td:td,id:id,cKey:cKey});
+    td.innerHTML=catTag(nc)+'<span class="edit-hint">✏</span>';
+    td.setAttribute('data-cat',nc);
+    var cdMap=JSON.parse(localStorage.getItem('catDescMap')||'{}');cdMap[normD]=nc;localStorage.setItem('catDescMap',JSON.stringify(cdMap));
+    var catMap=JSON.parse(localStorage.getItem('catMap')||'{}');catMap[cKey]=nc;localStorage.setItem('catMap',JSON.stringify(catMap));
+    ALL.forEach(function(r){var ro=r._origDesc||r.description||r.payee||'';if(normVendor(ro)===normD)r.category=nc;});
+    renderDonut(filtered());toast('Category saved');
+    google.script.run.withSuccessHandler(function(){}).withFailureHandler(function(){}).setCatRule(normD,nc);
+    if(id)google.script.run.withSuccessHandler(function(){}).withFailureHandler(function(){}).updateCategory(id,nc);
   });
 }
 function toggleAG(el){var gid=el.getAttribute('data-gid');var d=document.getElementById(gid);var ch=el.querySelector('span');if(!d)return;var open=d.style.display!=='none';d.style.display=open?'none':'block';if(ch)ch.textContent=open?'▶':'▼';}
