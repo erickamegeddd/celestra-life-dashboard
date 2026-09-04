@@ -763,8 +763,8 @@ function _applyCatPreview(checked,unchecked,nc,normD,ed){
   if(nc)cdMap[normD]=nc;else delete cdMap[normD];
   localStorage.setItem('catDescMap',JSON.stringify(cdMap));localStorage.setItem('catMap',JSON.stringify(catMap));
   google.script.run.withSuccessHandler(function(){}).withFailureHandler(function(){}).setCatRule(normD,nc);
-  var tot=checked.length+unchecked.length;
-  toast(tot===0?'Category saved':(checked.length===tot?'Category saved':'Applied to '+checked.length+' of '+tot+' transactions'));
+  var _dbgMatch=ALL.filter(function(r){return normVendor(r._origDesc||r.description||r.payee||'')===normD;});
+  toast('INSIDE: found='+_dbgMatch.length+' cat='+(_dbgMatch[0]?_dbgMatch[0].category:'none'));
   reapplyLocalRules();
   render();
 }
