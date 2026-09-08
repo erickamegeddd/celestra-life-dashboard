@@ -291,7 +291,9 @@ function isFrankAcct(nm){var n=(nm||'').toLowerCase();for(var i=0;i<FRANK_KEYS.l
 var ALL_NAMED_KEYS=['8808','3000','9613','1360','1378','3292','1007','6576','6852','6860','8238','6469','9575','0928','5917','5150','8619','1539','4005','1009','9225','566','728','3988','3438','3439','9785','340','707'];
 function isInNamedGroup(nm){var n=(nm||'').toLowerCase();for(var i=0;i<ALL_NAMED_KEYS.length;i++){if(n.indexOf('('+ALL_NAMED_KEYS[i]+')')!==-1)return true;}return false;}
 var PAGE=50,barInst=null,donutInst=null,donut2Inst=null,recChartInst=null;
-var BULK_SEL=new Set();
+var BULK_SEL=new Set();var DRAG_SELECT=false,DRAG_VALUE=false;
+function startDragSelectMode(ev){var cb=ev.target;DRAG_SELECT=true;DRAG_VALUE=!cb.checked;}
+function dragSelectRow(tr){if(!DRAG_SELECT)return;var inputs=tr.getElementsByTagName('input');for(var _dsi=0;_dsi<inputs.length;_dsi++){if(inputs[_dsi].type==='checkbox'&&inputs[_dsi].className.indexOf('row-cb')!==-1){if(inputs[_dsi].checked!==DRAG_VALUE){inputs[_dsi].checked=DRAG_VALUE;onRowCB(inputs[_dsi]);}break;}}}
 function onRowCB(cb){var k=cb.getAttribute('data-cbkey');if(cb.checked)BULK_SEL.add(k);else BULK_SEL.delete(k);updateBulkBar();}
 function toggleAllCB(masterCb){document.querySelectorAll('#tx-body .row-cb').forEach(function(cb){cb.checked=masterCb.checked;var k=cb.getAttribute('data-cbkey');if(masterCb.checked)BULK_SEL.add(k);else BULK_SEL.delete(k);});updateBulkBar();}
 function updateBulkBar(){var bar=document.getElementById('bulk-bar');var cnt=document.getElementById('bulk-count');if(!bar)return;if(BULK_SEL.size>0){bar.className='show';cnt.textContent=BULK_SEL.size+' selected';}else{bar.className='';var mcb=document.getElementById('cb-all');if(mcb)mcb.checked=false;}}
@@ -750,7 +752,7 @@ function renderTx(){
   document.getElementById('tx-body').innerHTML=rows.slice((STATE.page-1)*PAGE,STATE.page*PAGE).map(function(r){
     var cls=r.amount<0?'amt-neg':'amt-pos';
     var _cbKey=(r.date||'')+'|'+(r.account||'')+'|'+Number(r.amount||0)+'|'+(r._origDesc||r.description||r.payee||'');
-    return'<tr><td style="width:32px;text-align:center"><input type="checkbox" class="row-cb" '+(BULK_SEL.has(_cbKey)?'checked ':'')+'data-cbkey="'+esc(_cbKey)+'" data-id="'+esc(r.id)+'" data-date="'+esc(r.date||'')+'" data-account="'+esc(r.account||'')+'" data-amount="'+Number(r.amount||0)+'" data-orig="'+esc(r._origDesc||r.description||r.payee||'')+'" onchange="onRowCB(this)"></td><td>'+r.date+'</td><td title="'+esc(r.account)+'">'+esc(lbl(r.account))+'</td><td class="desc-cell" data-id="'+esc(r.id)+'" data-desc="'+esc(r.description||r.payee||'')+'" data-orig="'+esc(r._origDesc||r.description||r.payee||'')+'" data-date="'+esc(r.date||'')+'" data-account="'+esc(r.account||'')+'" data-amount="'+Number(r.amount||0)+'" onclick="editDesc(event,this)">'+esc(r.description||r.payee||'')+'<span class="edit-hint">✏</span></td>'
+    return'<tr onmouseover="dragSelectRow(this)"><td style="width:32px;text-align:center"><input type="checkbox" class="row-cb" '+(BULK_SEL.has(_cbKey)?'checked ':'')+'data-cbkey="'+esc(_cbKey)+'" data-id="'+esc(r.id)+'" data-date="'+esc(r.date||'')+'" data-account="'+esc(r.account||'')+'" data-amount="'+Number(r.amount||0)+'" data-orig="'+esc(r._origDesc||r.description||r.payee||'')+'" onmousedown="startDragSelectMode(event)" onchange="onRowCB(this)"></td><td>'+r.date+'</td><td title="'+esc(r.account)+'">'+esc(lbl(r.account))+'</td><td class="desc-cell" data-id="'+esc(r.id)+'" data-desc="'+esc(r.description||r.payee||'')+'" data-orig="'+esc(r._origDesc||r.description||r.payee||'')+'" data-date="'+esc(r.date||'')+'" data-account="'+esc(r.account||'')+'" data-amount="'+Number(r.amount||0)+'" onclick="editDesc(event,this)">'+esc(r.description||r.payee||'')+'<span class="edit-hint">✏</span></td>'
       +'<td class="cat-cell" data-id="'+esc(r.id)+'" data-cat="'+esc(r.category)+'" data-date="'+esc(r.date||'')+'" data-account="'+esc(r.account||'')+'" data-amount="'+Number(r.amount||0)+'" data-orig="'+esc(r._origDesc||r.description||r.payee||'')+'" onclick="editCat(event,this)">'+catTag(r.category)+'<span class="edit-hint">✏</span></td>'
       +'<td class="right '+cls+'">'+usdAbs(r.amount)+'</td></tr>';
   }).join('');
@@ -1043,6 +1045,7 @@ document.getElementById('loading').style.display='none';document.getElementById(
 }
 (function(){
   var saved=localStorage.getItem('lastSync');if(saved){var s=document.getElementById('sync-status');s.textContent=saved;s.style.color='var(--pos)';}
+  document.body.onmouseup=function(){DRAG_SELECT=false;};
   loadData();
   google.script.run.withSuccessHandler(function(url){var el=document.getElementById('sheet-link');el.href=url;el.style.display='';}).getSheetUrl();
 })();
