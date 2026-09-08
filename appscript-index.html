@@ -323,7 +323,7 @@ function applyBulkCat(){
               var normD=normVendor(r._origDesc||r.description||r.payee||'');
               affNormDs[normD]=true;
               r.category=nc;
-              if(nc){catMap[rk]=nc;cdMap[normD]=nc;}else{delete catMap[rk];delete cdMap[normD];}
+              if(nc){catMap[rk]=nc;cdMap[normD]=nc;}else{catMap[rk]='__none__';cdMap[normD]='__none__';}
               if(r.id)google.script.run.withSuccessHandler(function(){}).withFailureHandler(function(){}).updateCategory(r.id,nc);
             });
           }
@@ -822,12 +822,12 @@ function _applyCatPreview(checked,unchecked,nc,normD,ed){
     var r=checked[ci2];
     r.category=nc;
     var rk=(r.date||'')+'|'+(r.account||'')+'|'+Number(r.amount||0);
-    if(nc)catMap[rk]=nc;else delete catMap[rk];
+    if(nc)catMap[rk]=nc;else catMap[rk]='__none__';
     var ctd=cellById[r.id||''];
     if(ctd){ctd.innerHTML=catTag(nc)+'<span class="edit-hint">✏</span>';ctd.setAttribute('data-cat',nc);}
     if(r.id)google.script.run.withSuccessHandler(function(){}).withFailureHandler(function(){}).updateCategory(r.id,nc);
   }
-  if(nc)cdMap[normD]=nc;else delete cdMap[normD];
+  if(nc)cdMap[normD]=nc;else cdMap[normD]='__none__';
   localStorage.setItem('catDescMap',JSON.stringify(cdMap));
   localStorage.setItem('catMap',JSON.stringify(catMap));
   try{google.script.run.withSuccessHandler(function(){}).withFailureHandler(function(){}).setCatRule(normD,nc);}catch(sre){}
@@ -1034,7 +1034,7 @@ function doSync(){
 function loadData(){
   var btn=document.getElementById('sync-btn');
   var token='<?= userToken ?>';if(token==='rob'||token==='frank'){VIEW_PARAM=token;var _vs=document.getElementById('view-sel');if(_vs){_vs.value=token;_vs.style.display='none';}token='';}
-  google.script.run.withSuccessHandler(function(data){ALL=data.rows||[];LIVE_BAL=data.accounts||{};var sharedRules=data.catRules||{};var catDescMap=JSON.parse(localStorage.getItem('catDescMap')||'{}');var catMap=JSON.parse(localStorage.getItem('catMap')||'{}');var dM2=JSON.parse(localStorage.getItem('descMap')||'{}');ALL.forEach(function(r){if(isHiddenAcct(r.account))r.account=r.account.replace('World Legend','World Elite');var _rawD=r.description||r.payee||'';r._origDesc=_rawD;var _sc=r.category||'';if(_sc==='Payroll & Income'){r.category=r.amount<0?'Payroll':'Income';}else{r.category=_sc;}(function(){var _nv0=normVendor(_rawD);var _dk=[_nv0,_nv0.replace(/#/g,'').replace(/\s{2,}/g,' ').trim(),_rawD.trim().toLowerCase(),_rawD.trim()];for(var _di=0;_di<_dk.length;_di++){if(dM2[_dk[_di]]){r.description=dM2[_dk[_di]];break;}}})();var nd2=normVendor(_rawD);if(sharedRules[nd2])r.category=sharedRules[nd2];if(catDescMap[nd2])r.category=catDescMap[nd2];var cKey=(r.date||'')+'|'+(r.account||'')+'|'+r.amount;if(catMap[cKey])r.category=catMap[cKey];});(function(){try{var tc=JSON.parse(localStorage.getItem('txCache')||'[]');if(tc.length){var fk={};ALL.forEach(function(r){fk[(r.date||'')+'|'+(r.account||'')+'|'+r.amount]=1;});tc.forEach(function(r){if(isHiddenAcct(r.account))r.account=r.account.replace('World Legend','World Elite');var k=(r.date||'')+'|'+(r.account||'')+'|'+r.amount;if(fk[k])return;var rd=r._origDesc||r.description||r.payee||'';if(dM2[normVendor(rd)])r.description=dM2[normVendor(rd)];var _sc2=r.category||'';if(_sc2==='Payroll & Income'){r.category=r.amount<0?'Payroll':'Income';}else{r.category=_sc2;}var nd3=normVendor(rd);if(sharedRules[nd3])r.category=sharedRules[nd3];if(catDescMap[nd3])r.category=catDescMap[nd3];if(catMap[k])r.category=catMap[k];ALL.push(r);});}localStorage.setItem('txCache',JSON.stringify(ALL));}catch(e){}}());// Pull in any categories from sheet data not yet in ALL_CATS
+  google.script.run.withSuccessHandler(function(data){ALL=data.rows||[];LIVE_BAL=data.accounts||{};var sharedRules=data.catRules||{};var catDescMap=JSON.parse(localStorage.getItem('catDescMap')||'{}');var catMap=JSON.parse(localStorage.getItem('catMap')||'{}');var dM2=JSON.parse(localStorage.getItem('descMap')||'{}');ALL.forEach(function(r){if(isHiddenAcct(r.account))r.account=r.account.replace('World Legend','World Elite');var _rawD=r.description||r.payee||'';r._origDesc=_rawD;var _sc=r.category||'';if(_sc==='Payroll & Income'){r.category=r.amount<0?'Payroll':'Income';}else{r.category=_sc;}(function(){var _nv0=normVendor(_rawD);var _dk=[_nv0,_nv0.replace(/#/g,'').replace(/\s{2,}/g,' ').trim(),_rawD.trim().toLowerCase(),_rawD.trim()];for(var _di=0;_di<_dk.length;_di++){if(dM2[_dk[_di]]){r.description=dM2[_dk[_di]];break;}}})();var nd2=normVendor(_rawD);if(sharedRules[nd2]&&catDescMap[nd2]!=='__none__')r.category=sharedRules[nd2];if(catDescMap[nd2]==='__none__')r.category='';else if(catDescMap[nd2])r.category=catDescMap[nd2];var cKey=(r.date||'')+'|'+(r.account||'')+'|'+r.amount;if(catMap[cKey]==='__none__')r.category='';else if(catMap[cKey])r.category=catMap[cKey];});(function(){try{var tc=JSON.parse(localStorage.getItem('txCache')||'[]');if(tc.length){var fk={};ALL.forEach(function(r){fk[(r.date||'')+'|'+(r.account||'')+'|'+r.amount]=1;});tc.forEach(function(r){if(isHiddenAcct(r.account))r.account=r.account.replace('World Legend','World Elite');var k=(r.date||'')+'|'+(r.account||'')+'|'+r.amount;if(fk[k])return;var rd=r._origDesc||r.description||r.payee||'';if(dM2[normVendor(rd)])r.description=dM2[normVendor(rd)];var _sc2=r.category||'';if(_sc2==='Payroll & Income'){r.category=r.amount<0?'Payroll':'Income';}else{r.category=_sc2;}var nd3=normVendor(rd);if(sharedRules[nd3]&&catDescMap[nd3]!=='__none__')r.category=sharedRules[nd3];if(catDescMap[nd3]==='__none__')r.category='';else if(catDescMap[nd3])r.category=catDescMap[nd3];if(catMap[k]==='__none__')r.category='';else if(catMap[k])r.category=catMap[k];ALL.push(r);});}localStorage.setItem('txCache',JSON.stringify(ALL));}catch(e){}}());// Pull in any categories from sheet data not yet in ALL_CATS
 (function(){ALL.forEach(function(r){var c=r.category||'';if(c&&ALL_CATS.indexOf(c)===-1){ALL_CATS.push(c);}});ALL_CATS.sort(function(a,b){return a.toLowerCase()<b.toLowerCase()?-1:a.toLowerCase()>b.toLowerCase()?1:0;});})();
 document.getElementById('loading').style.display='none';document.getElementById('overview').classList.add('active');renderMonthBtns();render();btn.disabled=false;btn.innerHTML='🔄 Sync';}).withFailureHandler(function(e){document.getElementById('loading').textContent='Error: '+e.message;btn.disabled=false;btn.innerHTML='🔄 Sync';}).getData(token||null);
 }
