@@ -992,7 +992,7 @@ function renderRecurring(){
     var _accts=Object.keys(v.accts||{});
     var _acctLabel=_accts.map(function(a){return lbl(a);}).join(', ');
     return'<tr><td>'+esc(v.display)+'</td><td style="font-size:10px;white-space:normal">'+esc(_acctLabel)+'</td><td>'+catTag(v.category)+'</td>'+moCells.join('')+'<td class="r">'+usdAbs(avg)+'</td><td class="r" style="font-weight:700">'+usdAbs(v.total)+'</td></tr>';
-  }).join('')+'<tr class="totals-row"><td colspan="2">Monthly total</td>'+months.map(function(mo){return'<td class="r">'+usdAbs(moTotals[mo])+'</td>';}).join('')+'<td class="r">'+usdAbs(totalRec/months.length)+'</td><td class="r">'+usdAbs(totalRec)+'</td></tr></tbody>';
+  }).join('')+'<tr class="totals-row"><td colspan="3">Monthly total</td>'+months.map(function(mo){return'<td class="r">'+usdAbs(moTotals[mo])+'</td>';}).join('')+'<td class="r">'+usdAbs(totalRec/months.length)+'</td><td class="r">'+usdAbs(totalRec)+'</td></tr></tbody>';
   tbl.innerHTML=thead+tbody;
 }
 function renderMonthBtns(){
