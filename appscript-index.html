@@ -476,6 +476,8 @@ function renderDonut(rows){
   var spent=rows.filter(function(r){return r.amount<0;});
   var total=spent.reduce(function(s,r){return s+(-r.amount);},0);
   var map={};spent.forEach(function(r){if(!r.category)return;map[r.category]=(map[r.category]||0)+(-r.amount);});
+  // Show custom categories even with $0 spending
+  for(var _ci=0;_ci<CUSTOM_CATS.length;_ci++){if(CUSTOM_CATS[_ci]&&!map[CUSTOM_CATS[_ci]])map[CUSTOM_CATS[_ci]]=0;}
   var entries=Object.entries(map).sort(function(a,b){return b[1]-a[1];});
   var labels=entries.map(function(e){return e[0];});
   var cols=labels.map(function(_,i){return COLORS[i%COLORS.length];});
@@ -722,7 +724,7 @@ function renderTx(){
     var cfSelectors=[
       {id:'cf-date',vals:Array.from(new Set(ALL.map(function(r){return(r.date||'').slice(0,7);}))).filter(Boolean).sort().reverse(),lbl:function(v){return v;}},
       {id:'cf-description',vals:Array.from(new Set(ALL.map(function(r){return r.description||r.payee||'';}))).filter(Boolean).sort(),lbl:function(v){return v;}},
-      {id:'cf-category',vals:Array.from(new Set(ALL.map(function(r){return r.category||'';}))).filter(Boolean).sort(),lbl:function(v){return v;}}
+      {id:'cf-category',vals:(function(){var s={};ALL.forEach(function(r){if(r.category)s[r.category]=true;});for(var _ci=0;_ci<CUSTOM_CATS.length;_ci++){if(CUSTOM_CATS[_ci])s[CUSTOM_CATS[_ci]]=true;}var a=[];for(var k in s){if(s.hasOwnProperty(k))a.push(k);}return a.sort();})(),lbl:function(v){return v;}}
     ];
     cfSelectors.forEach(function(cfg){
       var el=document.getElementById(cfg.id);
@@ -1025,7 +1027,7 @@ function editLegendCat(el,oldCat){
   nm.replaceWith(inp);inp.select();
 }
 function doRename(newCat,oldCat){if(!newCat||newCat===oldCat){render();return;}ALL.forEach(function(r){if(r.category===oldCat)r.category=newCat;});google.script.run.renameCategory(oldCat,newCat);render();}
-function addCat(){var inp=document.getElementById('new-cat');var name=(inp.value||'').trim();if(!name)return;if(ALL_CATS.indexOf(name)===-1){ALL_CATS.push(name);ALL_CATS.sort();CUSTOM_CATS.push(name);localStorage.setItem('expCats',JSON.stringify(CUSTOM_CATS));}inp.value='';inp.placeholder='✓ "'+name+'" added';setTimeout(function(){inp.placeholder='+ New category…';},2000);}
+function addCat(){var inp=document.getElementById('new-cat');var name=(inp.value||'').trim();if(!name)return;if(ALL_CATS.indexOf(name)===-1){ALL_CATS.push(name);ALL_CATS.sort(function(a,b){return a.toLowerCase()<b.toLowerCase()?-1:a.toLowerCase()>b.toLowerCase()?1:0;});CUSTOM_CATS.push(name);localStorage.setItem('expCats',JSON.stringify(CUSTOM_CATS));try{google.script.run.withSuccessHandler(function(){}).withFailureHandler(function(){}).addCustomCat(name);}catch(e){}renderDonut(filtered());}inp.value='';inp.placeholder='✓ "'+name+'" added';setTimeout(function(){inp.placeholder='+ New category…';},2000);}
 function showView(id,el){document.querySelectorAll('#overview,#accounts').forEach(function(d){d.classList.remove('active');});document.getElementById(id).classList.add('active');document.querySelectorAll('.nav a').forEach(function(a){a.classList.remove('active');});if(el)el.classList.add('active');}
 function setPeriod(days,btn){STATE.period=days;STATE.page=1;document.querySelectorAll('#period-btns .tgl').forEach(function(b){b.classList.remove('on');});if(btn)btn.classList.add('on');render();}
 function doSync(){
