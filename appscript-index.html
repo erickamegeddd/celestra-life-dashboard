@@ -370,6 +370,10 @@ function openCatPicker(anchorEl,curVal,cb){
   p.style.cssText='display:block;top:'+top+'px;left:'+left+'px;position:fixed;';
   if(ov)ov.style.display='block';
   p.innerHTML='';
+  var inp=document.createElement('input');inp.type='text';inp.placeholder='Type to filter...';inp.setAttribute('autocomplete','off');inp.className='cfd-search';inp.style.cssText='position:sticky;top:0;z-index:1;';
+  p.appendChild(inp);
+  inp.onkeyup=function(){var q=inp.value.toLowerCase();var opts=p.getElementsByClassName('cp-opt');for(var j=0;j<opts.length;j++){var txt=opts[j].textContent.trim().toLowerCase();opts[j].style.display=(txt==='— none —'||!q||txt.indexOf(q)===0)?'':'none';}};
+  setTimeout(function(){inp.focus();},30);
   var none=document.createElement('div');none.className='cp-opt'+(curVal===''?' cp-sel':'');none.textContent='— None —';
   none.onclick=function(){var fn=_cpCb;_cpCb=null;closeCatPicker();fn&&fn('');};p.appendChild(none);
   ALL_CATS.forEach(function(c,i){
