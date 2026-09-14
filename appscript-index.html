@@ -214,7 +214,7 @@ td{padding:7px 9px;border-bottom:1px solid var(--line);white-space:nowrap;overfl
       </div>
       <div style="overflow-x:auto"><table><thead><tr>
         <th style="width:32px;text-align:center"><input type="checkbox" id="cb-all" class="row-cb" onchange="toggleAllCB(this)"></th><th style="cursor:pointer;white-space:nowrap" onclick="sortBy('date')">Date <span id="sort-date" style="font-size:10px"></span></th><th style="cursor:pointer;white-space:nowrap" onclick="sortBy('account')">Account <span id="sort-account" style="font-size:10px"></span></th><th style="cursor:pointer;white-space:nowrap" onclick="sortBy('description')">Description <span id="sort-description" style="font-size:10px"></span></th><th style="cursor:pointer;white-space:nowrap" onclick="sortBy('category')">Category <span id="sort-category" style="font-size:10px"></span></th><th class="right" style="cursor:pointer;white-space:nowrap" onclick="sortBy('amount')">Amount <span id="sort-amount" style="font-size:10px"></span></th>
-      </tr><tr class="col-filter-row"><td></td><td><select class="col-filter" id="cf-date" onchange="STATE.page=1;renderTx()"><option value="">All months</option></select></td><td><select class="col-filter" id="cf-account" onchange="STATE.page=1;renderTx()"><option value="">All accounts</option></select></td><td><select class="col-filter" id="cf-description" onchange="STATE.page=1;renderTx()"><option value="">All descriptions</option></select></td><td><select class="col-filter" id="cf-category" onchange="STATE.page=1;renderTx()"><option value="">All categories</option></select></td><td></td></tr></thead><tbody id="tx-body"></tbody></table></div>
+      </tr><tr class="col-filter-row"><td></td><td><select class="col-filter" id="cf-date" onchange="STATE.page=1;renderTx()"><option value="">All months</option></select></td><td><select class="col-filter" id="cf-account" onchange="STATE.page=1;renderTx()"><option value="">All accounts</option></select></td><td><select class="col-filter" id="cf-description" onchange="STATE.page=1;renderTx()"><option value="">All descriptions</option></select></td><td><select class="col-filter" id="cf-category" style="display:none"><option value="">All categories</option></select><button class="col-filter" id="cf-category-btn" onclick="openCfCatPicker(this)" style="text-align:left;cursor:pointer;background:#fff;font-family:inherit;color:var(--ink);">All categories ▾</button></td><td></td></tr></thead><tbody id="tx-body"></tbody></table></div>
       <div class="pager" id="pager"></div>
       </div>
       <div id="tab-rec" style="display:none">
@@ -768,8 +768,33 @@ function sortBy(col){if(SORT.col===col){SORT.dir*=-1;}else{SORT.col=col;SORT.dir
 function clearTxFilters(){
   var ids=['d-start','d-end','tx-search','tx-acct-filter','cf-date','cf-account','cf-description','cf-category'];
   ids.forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+  var _cfcb=document.getElementById('cf-category-btn');if(_cfcb)_cfcb.textContent='All categories ▾';
   STATE.page=1;STATE.customStart='';STATE.customEnd='';
   renderMonthBtns();renderTx();
+}
+function openCfCatPicker(btn){
+  if(document.getElementById('_cfcp'))return;
+  var sel=document.getElementById('cf-category');var curVal=sel?sel.value:'';
+  var rect=btn.getBoundingClientRect();var top=rect.bottom+2,left=rect.left;
+  if(top+270>window.innerHeight)top=rect.top-274;if(left+230>window.innerWidth)left=window.innerWidth-234;
+  var ov=document.createElement('div');ov.id='_cfcp_ov';ov.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;z-index:9998;';document.body.appendChild(ov);
+  var p=document.createElement('div');p.id='_cfcp';p.style.cssText='position:fixed;background:#fff;border:1px solid var(--line);border-radius:8px;box-shadow:0 4px 18px rgba(0,0,0,.2);z-index:9999;max-height:270px;overflow-y:auto;min-width:200px;top:'+top+'px;left:'+left+'px;';
+  var inp=document.createElement('input');inp.type='text';inp.placeholder='Type to filter...';inp.setAttribute('autocomplete','off');inp.style.cssText='width:100%;box-sizing:border-box;padding:7px 10px;border:none;border-bottom:1px solid var(--line);outline:none;font-size:12px;background:#f8faf8;font-family:inherit;position:sticky;top:0;z-index:1;';
+  p.appendChild(inp);
+  function closePick(){var pp=document.getElementById('_cfcp');if(pp)pp.parentNode.removeChild(pp);var oo=document.getElementById('_cfcp_ov');if(oo)oo.parentNode.removeChild(oo);}
+  ov.onclick=closePick;
+  function pick(val,lbl){closePick();if(sel)sel.value=val;var b=document.getElementById('cf-category-btn');if(b)b.textContent=(val?lbl:'All categories')+' ▾';STATE.page=1;renderTx();}
+  inp.onkeyup=function(){var q=inp.value.toLowerCase();var opts=p.getElementsByClassName('_cfco');for(var j=0;j<opts.length;j++){var txt=opts[j].textContent.trim().replace(' ▾','').toLowerCase();opts[j].style.display=(!q||txt.indexOf(q)===0)?'':'none';}};
+  var sopts=sel?sel.options:[];
+  for(var i=0;i<sopts.length;i++){
+    var o=sopts[i];var d=document.createElement('div');d.className='_cfco';
+    d.style.cssText='padding:7px 14px;font-size:12px;cursor:pointer;white-space:nowrap;'+(o.value===curVal?'color:var(--accent);font-weight:700;':'');
+    d.textContent=o.textContent;
+    (function(v,l){d.onclick=function(){pick(v,l);};})(o.value,o.textContent);
+    d.onmouseover=function(){this.style.background='var(--accent-soft)';};d.onmouseout=function(){this.style.background='';};
+    p.appendChild(d);
+  }
+  document.body.appendChild(p);setTimeout(function(){inp.focus();},30);
 }
 var _preview={type:'',normD:'',nc:'',matches:[],editData:{}};
 function showPreviewModal(type,normD,nc,editData){
