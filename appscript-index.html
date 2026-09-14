@@ -925,7 +925,7 @@ function switchCardTab(tab){
   document.getElementById('tabbtn-rec').className='tab-btn'+(tab==='rec'?' active':'');
   if(tab==='rec')renderRecurring();
 }
-function normVendor(s){return(s||'').replace(/\b[X]+[\dX]+\b/g,'').replace(/\b\d{5,}\b/g,'').replace(/[_*|]+/g,' ').replace(/\s{2,}/g,' ').trim().toLowerCase();}
+function normVendor(s){return(s||'').replace(/\b[X]+[\dX]+\b/g,'').replace(/\b\d{5,}\b/g,'').replace(/\b[a-z]+\d{3,}\w*\b/gi,'').replace(/[_*|]+/g,' ').replace(/\s{2,}/g,' ').trim().toLowerCase();}
 function renderRecurring(){
   var mNames=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   function moLabel(m){var p=m.split('-');return mNames[parseInt(p[1],10)-1]+' \''+p[0].slice(2);}
