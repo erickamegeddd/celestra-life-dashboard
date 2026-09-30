@@ -784,8 +784,8 @@ function renderTx(){
     var kn=document.getElementById('k-tx-net');if(kn){kn.textContent=(net>=0?'+':'-')+usdAbs(net);kn.className='val '+(net>=0?'pos':'neg');}
     var kc=document.getElementById('k-tx-count');if(kc)kc.textContent=rows.length.toLocaleString();
   })();
-  var _ksp=document.getElementById('kpi-tx-spent');if(_ksp)_ksp.style.boxShadow=STATE.typeFilter==='spending'?'0 0 0 3px #fff':'';
-  var _kinc=document.getElementById('kpi-tx-income');if(_kinc)_kinc.style.boxShadow=STATE.typeFilter==='income'?'0 0 0 3px #fff':'';
+  var _ksp=document.getElementById('kpi-tx-spent');if(_ksp){_ksp.style.boxShadow=STATE.typeFilter==='spending'?'0 0 0 3px #fff':'';_ksp.style.background=STATE.typeFilter==='spending'?'rgba(255,255,255,0.18)':'';_ksp.style.outline=STATE.typeFilter==='spending'?'2px solid #fff':'none';var _kspL=_ksp.querySelector('.lbl');if(_kspL)_kspL.textContent=STATE.typeFilter==='spending'?'Total Spent  ✓':'Total Spent';}
+  var _kinc=document.getElementById('kpi-tx-income');if(_kinc){_kinc.style.boxShadow=STATE.typeFilter==='income'?'0 0 0 3px #fff':'';_kinc.style.background=STATE.typeFilter==='income'?'rgba(255,255,255,0.18)':'';_kinc.style.outline=STATE.typeFilter==='income'?'2px solid #fff':'none';var _kincL=_kinc.querySelector('.lbl');if(_kincL)_kincL.textContent=STATE.typeFilter==='income'?'Income  ✓':'Income';}
   if(STATE.typeFilter==='spending')rows=rows.filter(function(r){return r.amount<0;});
   else if(STATE.typeFilter==='income')rows=rows.filter(function(r){return r.amount>0;});
   document.getElementById('tx-count').textContent=rows.length.toLocaleString()+' transactions';
