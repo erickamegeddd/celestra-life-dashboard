@@ -307,7 +307,7 @@ function applyBulkCat(){
   try{
     var cdMap=JSON.parse(localStorage.getItem('catDescMap')||'{}');
     var catMap=JSON.parse(localStorage.getItem('catMap')||'{}');
-    var affNormDs={};// plain object instead of Set — avoids Set.forEach
+    var affNormDs={};var _bulkIds=[];// plain object instead of Set — avoids Set.forEach
     // Get selected rows and affected normDs FROM DOM (avoids BULK_SEL.forEach/Array.from)
     var txb=document.getElementById('tx-body');
     if(txb&&txb.rows){
@@ -329,7 +329,7 @@ function applyBulkCat(){
               affNormDs[normD]=true;
               r.category=nc;
               if(nc){catMap[rk]=nc;cdMap[normD]=nc;}else{catMap[rk]='__none__';cdMap[normD]='__none__';}
-              if(r.id)google.script.run.withSuccessHandler(function(){}).withFailureHandler(function(){}).updateCategory(r.id,nc);
+              if(r.id)_bulkIds.push({id:r.id,cat:nc});
             });
           }
           // Update DOM cell directly
@@ -341,6 +341,7 @@ function applyBulkCat(){
     }
     localStorage.setItem('catMap',JSON.stringify(catMap));
     localStorage.setItem('catDescMap',JSON.stringify(cdMap));
+    if(_bulkIds.length){try{google.script.run.withSuccessHandler(function(){}).withFailureHandler(function(){}).bulkUpdateCategories(_bulkIds);}catch(e){}}
     // setCatRule for each affected normD (wrapped in try-catch in case not deployed)
     for(var nd in affNormDs){
       if(affNormDs.hasOwnProperty(nd)){
@@ -854,16 +855,18 @@ function _applyCatPreview(checked,unchecked,nc,normD,ed){
     var urk=(ur.date||'')+'|'+(ur.account||'')+'|'+Number(ur.amount||0);
     catMap[urk]=ur.category;
   }
-  // Apply to checked rows — update ALL + direct DOM + server
+  // Apply to checked rows — update ALL + direct DOM + server (batch)
+  var _bq=[];
   for(var ci2=0;ci2<checked.length;ci2++){
     var r=checked[ci2];
     r.category=nc;
     var rk=(r.date||'')+'|'+(r.account||'')+'|'+Number(r.amount||0);
     if(nc)catMap[rk]=nc;else catMap[rk]='__none__';
     var ctd=cellById[r.id||''];
-    if(ctd){ctd.innerHTML=catTag(nc)+'<span class="edit-hint">✏</span>';ctd.setAttribute('data-cat',nc);}
-    if(r.id)google.script.run.withSuccessHandler(function(){}).withFailureHandler(function(){}).updateCategory(r.id,nc);
+    if(ctd){ctd.innerHTML=catTag(nc)+'<span class="edit-hint">&#9998;</span>';ctd.setAttribute('data-cat',nc);}
+    if(r.id)_bq.push({id:r.id,cat:nc});
   }
+  if(_bq.length){try{google.script.run.withSuccessHandler(function(){}).withFailureHandler(function(){}).bulkUpdateCategories(_bq);}catch(e){}}
   if(nc)cdMap[normD]=nc;else cdMap[normD]='__none__';
   localStorage.setItem('catDescMap',JSON.stringify(cdMap));
   localStorage.setItem('catMap',JSON.stringify(catMap));
