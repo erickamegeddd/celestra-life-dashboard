@@ -211,8 +211,8 @@ td{padding:7px 9px;border-bottom:1px solid var(--line);white-space:nowrap;overfl
         <span id="tx-count" style="color:var(--muted);font-size:11px;margin-left:auto"></span>
       </div>
       <div class="kpis" style="margin:0 0 12px">
-        <div class="card kpi"><div class="lbl">Total Spent</div><div class="val neg" id="k-tx-spent">—</div></div>
-        <div class="card kpi"><div class="lbl">Income</div><div class="val pos" id="k-tx-income">—</div></div>
+        <div class="card kpi" id="kpi-tx-spent" onclick="toggleTypeFilter('spending')" style="cursor:pointer;transition:box-shadow .15s"><div class="lbl">Total Spent</div><div class="val neg" id="k-tx-spent">—</div></div>
+        <div class="card kpi" id="kpi-tx-income" onclick="toggleTypeFilter('income')" style="cursor:pointer;transition:box-shadow .15s"><div class="lbl">Income</div><div class="val pos" id="k-tx-income">—</div></div>
         <div class="card kpi"><div class="lbl">Net Cash Flow</div><div class="val" id="k-tx-net">—</div></div>
         <div class="card kpi"><div class="lbl"># Transactions</div><div class="val" id="k-tx-count">—</div></div>
       </div>
@@ -293,7 +293,7 @@ var ACCT_LABELS={
 "Investor Checking ...707 (707)":"Schwab Checking"
 };
 function lbl(nm){return ACCT_LABELS[nm]||nm;}
-var ALL=[],LIVE_BAL={},STATE={period:180,account:'',catFilter:null,page:1,customStart:'',customEnd:''};
+var ALL=[],LIVE_BAL={},STATE={period:180,account:'',catFilter:null,page:1,customStart:'',customEnd:'',typeFilter:''};
 var SORT={col:null,dir:1};
 var VIEW_PARAM=localStorage.getItem('dashView')||'';
 var HIDDEN_ACCTS=['World Legend'];function isHiddenAcct(nm){for(var i=0;i<HIDDEN_ACCTS.length;i++){if((nm||'').indexOf(HIDDEN_ACCTS[i])!==-1)return true;}return false;}
@@ -784,6 +784,10 @@ function renderTx(){
     var kn=document.getElementById('k-tx-net');if(kn){kn.textContent=(net>=0?'+':'-')+usdAbs(net);kn.className='val '+(net>=0?'pos':'neg');}
     var kc=document.getElementById('k-tx-count');if(kc)kc.textContent=rows.length.toLocaleString();
   })();
+  var _ksp=document.getElementById('kpi-tx-spent');if(_ksp)_ksp.style.boxShadow=STATE.typeFilter==='spending'?'0 0 0 3px #fff':'';
+  var _kinc=document.getElementById('kpi-tx-income');if(_kinc)_kinc.style.boxShadow=STATE.typeFilter==='income'?'0 0 0 3px #fff':'';
+  if(STATE.typeFilter==='spending')rows=rows.filter(function(r){return r.amount<0;});
+  else if(STATE.typeFilter==='income')rows=rows.filter(function(r){return r.amount>0;});
   document.getElementById('tx-count').textContent=rows.length.toLocaleString()+' transactions';
   var total=rows.length,pages=Math.max(1,Math.ceil(total/PAGE));
   if(STATE.page>pages)STATE.page=1;
@@ -797,6 +801,7 @@ function renderTx(){
   document.getElementById('pager').innerHTML='<button '+(STATE.page<=1?'disabled':'')+' onclick="STATE.page--;renderTx()">‹ Prev</button><span>Page '+STATE.page+' of '+pages+' ('+total.toLocaleString()+')</span><button '+(STATE.page>=pages?'disabled':'')+' onclick="STATE.page++;renderTx()">Next ›</button>';
 }
 function sortBy(col){if(SORT.col===col){SORT.dir*=-1;}else{SORT.col=col;SORT.dir=1;}STATE.page=1;renderTx();}
+function toggleTypeFilter(type){STATE.typeFilter=STATE.typeFilter===type?'':type;STATE.page=1;renderTx();}
 function clearTxFilters(){
   var ids=['d-start','d-end','tx-search','tx-acct-filter','cf-date','cf-account','cf-description','cf-category'];
   ids.forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
@@ -804,7 +809,7 @@ function clearTxFilters(){
   var _tafb=document.getElementById('tx-acct-filter-btn');if(_tafb)_tafb.textContent='All accounts ▾';
   var _cfab=document.getElementById('cf-account-btn');if(_cfab)_cfab.textContent='All accounts ▾';
   var _cfdb=document.getElementById('cf-description-btn');if(_cfdb)_cfdb.textContent='All descriptions ▾';
-  STATE.page=1;STATE.customStart='';STATE.customEnd='';
+  STATE.page=1;STATE.customStart='';STATE.customEnd='';STATE.typeFilter='';
   renderMonthBtns();renderTx();
 }
 function openCfCatPicker(btn){
