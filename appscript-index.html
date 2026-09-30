@@ -961,27 +961,25 @@ function _applyCatPreview(checked,unchecked,nc,normD,ed){
   setTimeout(function(){loadData();},800);
 }
 function _applyDescPreview(checked,nd,normD,ed){
-  // Collect all unique normalized keys + all unique _origDesc values from confirmed set
-  var dMap=JSON.parse(localStorage.getItem('descMap')||'{}');
-  var allNorms={};allNorms[normD]=1;
-  var origDescs={};
+  var dMap=JSON.parse(localStorage.getItem('descMap')||'{}');dMap[normD]=nd;
+  // Collect all unique descriptions to rename directly in the sheet (both displayed + origDesc)
+  var descsToRename={};
+  if(ed&&ed.cur)descsToRename[ed.cur]=1;
   checked.forEach(function(r){
-    var n1=normVendor(r._origDesc||r.payee||'');
-    var n2=normVendor(r.description||r.payee||'');
-    if(n1){allNorms[n1]=1;}if(n2){allNorms[n2]=1;}
-    var orig=(r._origDesc||r.payee||'').trim();if(orig)origDescs[orig]=1;
+    var n=normVendor(r._origDesc||r.payee||'');if(n)dMap[n]=nd;
+    var disp=(r.description||r.payee||'').trim();if(disp)descsToRename[disp]=1;
+    var orig=(r._origDesc||r.payee||'').trim();if(orig)descsToRename[orig]=1;
   });
-  Object.keys(allNorms).forEach(function(n){dMap[n]=nd;});
   localStorage.setItem('descMap',JSON.stringify(dMap));
   checked.forEach(function(r){r.description=nd;});
-  var _onErr=function(e){toast('Rename save error: '+(e&&e.message||'server error'));};
-  // Rule-based update (normalized match) for all key variants
-  Object.keys(allNorms).forEach(function(n){google.script.run.withFailureHandler(_onErr).setDescRule(n,nd);});
-  // Direct exact-match update for each unique original sheet value
-  Object.keys(origDescs).forEach(function(orig){google.script.run.withFailureHandler(function(){}).renameDesc(orig,nd);});
+  // Direct exact-match rename for every unique description (the approach that works)
+  Object.keys(descsToRename).forEach(function(desc){
+    google.script.run.withFailureHandler(function(){}).renameDesc(desc,nd);
+  });
+  // Also save normalized rules (for future transactions with same original vendor)
+  google.script.run.withFailureHandler(function(){}).setDescRule(normD,nd);
   if(ed&&ed.td){ed.td.innerHTML=esc(nd)+'<span class="edit-hint">✏</span>';ed.td.setAttribute('data-desc',nd);}
-  toast('Renamed '+checked.length+' transaction'+(checked.length!==1?'s':'')+'. Syncing...');
-  // Reload from server so _origDesc reflects current sheet state (same as category renames do)
+  toast('Description renamed for '+checked.length+' transaction'+(checked.length!==1?'s':''));
   setTimeout(function(){loadData();},1500);
 }
 function _applyTransferPreview(checked){
