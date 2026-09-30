@@ -86,6 +86,11 @@ td{padding:7px 9px;border-bottom:1px solid var(--line);white-space:nowrap;overfl
 .transfer-hint:hover{background:#7c3aed;color:#fff}
 .save-hint{font-size:10px;cursor:pointer;margin-left:3px;padding:1px 6px;border-radius:3px;background:rgba(21,128,61,0.12);color:var(--pos);font-weight:700}
 .save-hint:hover{background:var(--pos);color:#fff}
+#cat-edit-menu-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;z-index:9994}
+#cat-edit-menu{display:none;position:fixed;background:#fff;border:1px solid var(--line);border-radius:8px;box-shadow:0 4px 18px rgba(0,0,0,.2);z-index:9995;min-width:190px;overflow:hidden}
+.cem-opt{padding:9px 14px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:8px;white-space:nowrap;border-bottom:1px solid var(--line)}
+.cem-opt:last-child{border-bottom:none}
+.cem-opt:hover{background:var(--accent-soft)}
 .cat-select{font-size:12px;border:1px solid var(--accent);border-radius:5px;padding:2px 4px;background:var(--panel);color:var(--ink);outline:none}
 #overview,#accounts{display:none}
 #overview.active,#accounts.active{display:block}
@@ -505,7 +510,7 @@ function renderDonut(rows){
     var pct=total?Math.round(e[1]/total*100):0;
     var on=STATE.catFilter===e[0]?'style="background:var(--bg)"':'';
     var ce=esc(e[0]);
-    return'<div class="lrow" '+on+' onclick="toggleCat(\''+ce.replace(/'/g,"\\'")+'\')"><span class="sw" style="background:'+CAT_COLOR(e[0])+'"></span><span class="nm">'+ce+'</span><span class="amt">'+usdAbs(e[1])+'</span><span class="pct">'+pct+'%</span><span class="edit-hint" onclick="event.stopPropagation();editLegendCat(this,\''+ce.replace(/'/g,"\\'")+'\')">&#9998;</span><span class="del-hint" title="Delete category" onclick="event.stopPropagation();deleteCat(\''+ce.replace(/'/g,"\\'")+'\')">&#10005;</span></div>';
+    return'<div class="lrow" '+on+' onclick="toggleCat(\''+ce.replace(/'/g,"\\'")+'\')"><span class="sw" style="background:'+CAT_COLOR(e[0])+'"></span><span class="nm">'+ce+'</span><span class="amt">'+usdAbs(e[1])+'</span><span class="pct">'+pct+'%</span><span class="edit-hint" onclick="event.stopPropagation();openCatEditMenu(this,\''+ce.replace(/'/g,"\\'")+'\',\'spending\')">&#9998;</span><span class="del-hint" title="Delete category" onclick="event.stopPropagation();deleteCat(\''+ce.replace(/'/g,"\\'")+'\')">&#10005;</span></div>';
   }).join('');
 }
 function renderIncomeDonut(rows){
@@ -523,8 +528,9 @@ function renderIncomeDonut(rows){
   var leg2=document.getElementById('legend2');
   leg2.innerHTML=entries.map(function(e){
     var pct=total?Math.round(e[1]/total*100):0;
+    var on=STATE.catFilter===e[0]?'style="background:var(--bg)"':'';
     var ce=esc(e[0]);
-    return'<div class="lrow"><span class="sw" style="background:'+CAT_COLOR(e[0])+'"></span><span class="nm">'+ce+'</span><span class="amt">'+usdK(e[1])+'</span><span class="pct">'+pct+'%</span><span class="edit-hint" onclick="event.stopPropagation();editLegendCat(this,\''+ce.replace(/'/g,"\\'")+'\')">&#9998;</span><span class="del-hint" title="Delete category" onclick="event.stopPropagation();deleteCat(\''+ce.replace(/'/g,"\\'")+'\')">&#10005;</span><span class="transfer-hint" title="Move to Spending" onclick="event.stopPropagation();transferToSpending(\''+ce.replace(/'/g,"\\'")+'\')">&#8595; Spend</span></div>';
+    return'<div class="lrow" '+on+' onclick="toggleCat(\''+ce.replace(/'/g,"\\'")+'\')"><span class="sw" style="background:'+CAT_COLOR(e[0])+'"></span><span class="nm">'+ce+'</span><span class="amt">'+usdK(e[1])+'</span><span class="pct">'+pct+'%</span><span class="edit-hint" onclick="event.stopPropagation();openCatEditMenu(this,\''+ce.replace(/'/g,"\\'")+'\',\'income\')">&#9998;</span><span class="del-hint" title="Delete category" onclick="event.stopPropagation();deleteCat(\''+ce.replace(/'/g,"\\'")+'\')">&#10005;</span></div>';
   }).join('');
 }
 function getAccountType(nm){
@@ -806,12 +812,13 @@ function openCfCatPicker(btn){
 var _preview={type:'',normD:'',nc:'',matches:[],editData:{}};
 function showPreviewModal(type,normD,nc,editData){
   var matches;
-  if(type==='transfer'){matches=editData.matches;}
+  if(type==='transfer'||type==='transfer-income'){matches=editData.matches;}
   else{matches=ALL.filter(function(r){return normVendor(r._origDesc||r.description||r.payee||'')===normD;});}
   _preview={type:type,normD:normD,nc:nc,matches:matches,editData:editData};
   var tEl=document.getElementById('pm-title'),sEl=document.getElementById('pm-sub'),lEl=document.getElementById('pm-list');
   if(type==='cat'){tEl.innerHTML='Apply '+(nc?catTag(nc):'<em style="color:var(--muted)">None</em>')+' to matching transactions?';}
   else if(type==='transfer'){tEl.textContent='Move "'+normD+'" income transactions to Spending?';}
+  else if(type==='transfer-income'){tEl.textContent='Move "'+normD+'" spending transactions to Income?';}
   else{tEl.textContent='Rename to "'+nc+'"?';}
   sEl.textContent=matches.length+' transactions found — uncheck any to exclude';
   lEl.innerHTML='';
@@ -846,6 +853,7 @@ function applyPreviewChanges(){
   closePreviewModal();
   if(_preview.type==='cat')_applyCatPreview(checked,unchecked,_preview.nc,_preview.normD,_preview.editData);
   else if(_preview.type==='transfer')_applyTransferPreview(checked);
+  else if(_preview.type==='transfer-income')_applyTransferToIncome(checked);
   else _applyDescPreview(checked,_preview.nc,_preview.normD,_preview.editData);
 }
 function _applyCatPreview(checked,unchecked,nc,normD,ed){
@@ -895,7 +903,20 @@ function _applyTransferPreview(checked){
   var tf={};try{tf=JSON.parse(localStorage.getItem('spendingForced')||'{}');}catch(e){}
   ids.forEach(function(id){tf[id]=1;});
   localStorage.setItem('spendingForced',JSON.stringify(tf));
+  var inf={};try{inf=JSON.parse(localStorage.getItem('incomeForced')||'{}');}catch(e){}
+  ids.forEach(function(id){delete inf[id];});localStorage.setItem('incomeForced',JSON.stringify(inf));
   if(ids.length){try{google.script.run.withSuccessHandler(function(){toast('Moved '+ids.length+' transaction'+(ids.length!==1?'s':'')+' to Spending');}).withFailureHandler(function(){toast('Moved '+ids.length+' locally (sync error)');}).markAsSpending(ids);}catch(e){toast('Moved '+ids.length+' locally only');}}
+  render();
+}
+function _applyTransferToIncome(checked){
+  var ids=[];
+  checked.forEach(function(r){if(r.amount<0){r.amount=-r.amount;}if(r.id)ids.push(r.id);});
+  var inf={};try{inf=JSON.parse(localStorage.getItem('incomeForced')||'{}');}catch(e){}
+  ids.forEach(function(id){inf[id]=1;});
+  localStorage.setItem('incomeForced',JSON.stringify(inf));
+  var sf={};try{sf=JSON.parse(localStorage.getItem('spendingForced')||'{}');}catch(e){}
+  ids.forEach(function(id){delete sf[id];});localStorage.setItem('spendingForced',JSON.stringify(sf));
+  toast('Moved '+ids.length+' transaction'+(ids.length!==1?'s':'')+' to Income');
   render();
 }
 
@@ -1089,10 +1110,33 @@ function editLegendCat(el,oldCat){
 function doRename(newCat,oldCat){if(!newCat||newCat===oldCat){render();return;}ALL.forEach(function(r){if(r.category===oldCat)r.category=newCat;});var idx=ALL_CATS.indexOf(oldCat);if(idx>=0){ALL_CATS[idx]=newCat;ALL_CATS.sort(function(a,b){return a.toLowerCase()<b.toLowerCase()?-1:a.toLowerCase()>b.toLowerCase()?1:0;});}var ci=CUSTOM_CATS.indexOf(oldCat);if(ci>=0){CUSTOM_CATS[ci]=newCat;localStorage.setItem('expCats',JSON.stringify(CUSTOM_CATS));}try{google.script.run.withSuccessHandler(function(r){toast(r&&r.ok?'Category renamed':'Rename saved');}).withFailureHandler(function(e){toast('Rename error: '+(e.message||e),'err');}).renameCategory(oldCat,newCat);}catch(e){}render();}
 function addCat(){var inp=document.getElementById('new-cat');var name=(inp.value||'').trim();if(!name)return;if(ALL_CATS.indexOf(name)===-1){ALL_CATS.push(name);ALL_CATS.sort(function(a,b){return a.toLowerCase()<b.toLowerCase()?-1:a.toLowerCase()>b.toLowerCase()?1:0;});CUSTOM_CATS.push(name);localStorage.setItem('expCats',JSON.stringify(CUSTOM_CATS));try{google.script.run.withSuccessHandler(function(r){if(r&&r.ok)toast('"'+name+'" saved to server');else toast('Save failed: '+(r&&r.error||'unknown'),'err');}).withFailureHandler(function(e){toast('Save error: '+(e.message||e),'err');}).addCustomCat(name);}catch(e){toast('Save error: '+(e.message||e),'err');}renderDonut(filtered());}inp.value='';inp.placeholder='✓ "'+name+'" added';setTimeout(function(){inp.placeholder='+ New category…';},2000);}
 function deleteCat(cat){if(!confirm('Delete category "'+cat+'"?\n\nTransactions currently in this category will lose their category label. This cannot be undone.')){return;}var ci=ALL_CATS.indexOf(cat);if(ci>=0)ALL_CATS.splice(ci,1);var cc=CUSTOM_CATS.indexOf(cat);if(cc>=0)CUSTOM_CATS.splice(cc,1);localStorage.setItem('expCats',JSON.stringify(CUSTOM_CATS));if(STATE.catFilter===cat)STATE.catFilter=null;try{google.script.run.withSuccessHandler(function(){toast('"'+cat+'" deleted');}).withFailureHandler(function(){toast('"'+cat+'" removed locally');}).deleteCustomCat(cat);}catch(e){toast('"'+cat+'" removed locally');}render();}
+var _cemCat='',_cemType='',_cemEl=null;
+function openCatEditMenu(el,cat,type){
+  _cemCat=cat;_cemType=type;_cemEl=el;
+  var m=document.getElementById('cat-edit-menu');
+  var rect=el.getBoundingClientRect();
+  var transferOpt=type==='income'
+    ?'<div class="cem-opt" onclick="closeCatEditMenu();transferToSpending(_cemCat)" style="color:#7c3aed">&#8595; Move to Spending</div>'
+    :'<div class="cem-opt" onclick="closeCatEditMenu();transferToIncome(_cemCat)" style="color:var(--pos)">&#8593; Move to Income</div>';
+  m.innerHTML='<div class="cem-opt" onclick="closeCatEditMenu();editLegendCat(_cemEl,_cemCat)">&#9998; Rename</div>'+transferOpt;
+  m.style.top=(rect.bottom+4)+'px';
+  m.style.left=Math.min(rect.left,window.innerWidth-200)+'px';
+  m.style.display='block';
+  document.getElementById('cat-edit-menu-overlay').style.display='block';
+}
+function closeCatEditMenu(){
+  document.getElementById('cat-edit-menu').style.display='none';
+  document.getElementById('cat-edit-menu-overlay').style.display='none';
+}
 function transferToSpending(cat){
   var matches=ALL.filter(function(r){return r.amount>0&&r.category===cat;});
   if(!matches.length){toast('No income transactions in "'+cat+'"');return;}
   showPreviewModal('transfer',cat,cat,{cat:cat,matches:matches});
+}
+function transferToIncome(cat){
+  var matches=ALL.filter(function(r){return r.amount<0&&r.category===cat;});
+  if(!matches.length){toast('No spending transactions in "'+cat+'"');return;}
+  showPreviewModal('transfer-income',cat,cat,{cat:cat,matches:matches});
 }
 function showView(id,el){document.querySelectorAll('#overview,#accounts').forEach(function(d){d.classList.remove('active');});document.getElementById(id).classList.add('active');document.querySelectorAll('.nav a').forEach(function(a){a.classList.remove('active');});if(el)el.classList.add('active');}
 function setPeriod(days,btn){STATE.period=days;STATE.page=1;document.querySelectorAll('#period-btns .tgl').forEach(function(b){b.classList.remove('on');});if(btn)btn.classList.add('on');render();}
@@ -1112,7 +1156,7 @@ if(catDescMap[nd2]==='__none__')r.category='';else if(catDescMap[nd2])r.category
 if(catMap[cKey]==='__none__')r.category='';else if(catMap[cKey])r.category=catMap[cKey];});(function(){try{var tc=JSON.parse(localStorage.getItem('txCache')||'[]');if(tc.length){var fk={};ALL.forEach(function(r){fk[(r.date||'')+'|'+(r.account||'')+'|'+r.amount]=1;});tc.forEach(function(r){if(isHiddenAcct(r.account))r.account=r.account.replace('World Legend','World Elite');var k=(r.date||'')+'|'+(r.account||'')+'|'+r.amount;if(fk[k])return;var rd=r._origDesc||r.description||r.payee||'';if(dM2[normVendor(rd)])r.description=dM2[normVendor(rd)];var _sc2=r.category||'';if(_sc2==='Payroll & Income'){r.category=r.amount<0?'Payroll':'Income';}else{r.category=_sc2;}var nd3=normVendor(rd);if(sharedRules[nd3])r.category=sharedRules[nd3];if(catDescMap[nd3]==='__none__')r.category='';else if(catDescMap[nd3])r.category=catDescMap[nd3];
 if(catMap[k]==='__none__')r.category='';else if(catMap[k])r.category=catMap[k];ALL.push(r);});}localStorage.setItem('txCache',JSON.stringify(ALL));}catch(e){}}());// Pull in any categories from sheet data not yet in ALL_CATS
 (function(){ALL.forEach(function(r){var c=r.category||'';if(c&&ALL_CATS.indexOf(c)===-1){ALL_CATS.push(c);}});ALL_CATS.sort(function(a,b){return a.toLowerCase()<b.toLowerCase()?-1:a.toLowerCase()>b.toLowerCase()?1:0;});})();
-(function(){var _typeOvr=data.typeOverrides||{};var _localOvr={};try{_localOvr=JSON.parse(localStorage.getItem('spendingForced')||'{}');}catch(e){}ALL.forEach(function(r){if((_typeOvr[r.id]||_localOvr[r.id])&&r.amount>0)r.amount=-r.amount;});})();
+(function(){var _typeOvr=data.typeOverrides||{};var _localSpend={};try{_localSpend=JSON.parse(localStorage.getItem('spendingForced')||'{}');}catch(e){}var _localInc={};try{_localInc=JSON.parse(localStorage.getItem('incomeForced')||'{}');}catch(e){}ALL.forEach(function(r){if((_typeOvr[r.id]||_localSpend[r.id])&&r.amount>0)r.amount=-r.amount;if(_localInc[r.id]&&r.amount<0)r.amount=-r.amount;});})();
 document.getElementById('loading').style.display='none';document.getElementById('overview').classList.add('active');renderMonthBtns();render();btn.disabled=false;btn.innerHTML='🔄 Sync';}).withFailureHandler(function(e){document.getElementById('loading').textContent='Error: '+e.message;btn.disabled=false;btn.innerHTML='🔄 Sync';}).getData(token||null);
 }
 (function(){
@@ -1124,6 +1168,7 @@ document.getElementById('loading').style.display='none';document.getElementById(
 </script>
 </div>
 <div id="cat-picker-overlay" onclick="closeCatPicker()"></div><div id="cat-picker"></div><div id="rec-cat-overlay" onclick="closeRecCatPicker()"></div><div id="rec-cat-picker"></div>
+<div id="cat-edit-menu-overlay" onclick="closeCatEditMenu()"></div><div id="cat-edit-menu"></div>
 <div id="preview-overlay" onclick="closePreviewModal()"></div>
 <div id="preview-modal">
   <div class="pm-head"><div class="pm-title" id="pm-title"></div><div class="pm-sub" id="pm-sub"></div></div>
