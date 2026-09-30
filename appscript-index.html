@@ -205,7 +205,7 @@ td{padding:7px 9px;border-bottom:1px solid var(--line);white-space:nowrap;overfl
         <input type="date" id="d-start" onchange="renderTx()"/>
         <span style="color:var(--muted);font-size:11px">to</span>
         <input type="date" id="d-end" onchange="renderTx()"/>
-        <select id="tx-acct-filter" style="display:none"><option value="">All accounts</option></select><button id="tx-acct-filter-btn" class="flt" onclick="openCfPicker(this,'tx-acct-filter','All accounts')" style="font-size:11px;padding:4px 12px;cursor:pointer;background:#fff;font-family:inherit;color:var(--ink);text-align:left;">All accounts ▾</button>
+        <select id="tx-acct-filter" style="display:none"><option value="">All accounts</option></select><button id="tx-acct-filter-btn" class="flt" onclick="openCfPicker(this,'tx-acct-filter','All accounts')" style="font-size:12px;padding:6px 14px;cursor:pointer;background:#fff;font-family:inherit;color:var(--ink);text-align:left;border:1px solid var(--line);border-radius:8px;white-space:nowrap;">All accounts ▾</button>
         <input type="search" id="tx-search" placeholder="Search desc, category…" oninput="renderTx()"/>
         <button onclick="clearTxFilters()" style="font-size:11px;padding:3px 10px;border:1px solid var(--line);background:#fff;border-radius:6px;cursor:pointer;color:var(--muted);white-space:nowrap">✕ Clear filters</button>
         <span id="tx-count" style="color:var(--muted);font-size:11px;margin-left:auto"></span>
