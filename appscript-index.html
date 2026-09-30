@@ -884,7 +884,7 @@ var _preview={type:'',normD:'',nc:'',matches:[],editData:{}};
 function showPreviewModal(type,normD,nc,editData){
   var matches;
   if(type==='transfer'||type==='transfer-income'){matches=editData.matches;}
-  else{matches=ALL.filter(function(r){return normVendor(r._origDesc||r.description||r.payee||'')===normD;});}
+  else{matches=ALL.filter(function(r){var _nd1=normVendor(r._origDesc||r.description||r.payee||'');var _nd2=normVendor(r.description||r.payee||'');return _nd1===normD||_nd2===normD;});}
   _preview={type:type,normD:normD,nc:nc,matches:matches,editData:editData};
   var tEl=document.getElementById('pm-title'),sEl=document.getElementById('pm-sub'),lEl=document.getElementById('pm-list');
   if(type==='cat'){tEl.innerHTML='Apply '+(nc?catTag(nc):'<em style="color:var(--muted)">None</em>')+' to matching transactions?';}
