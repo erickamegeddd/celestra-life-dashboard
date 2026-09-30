@@ -961,9 +961,13 @@ function _applyCatPreview(checked,unchecked,nc,normD,ed){
   setTimeout(function(){loadData();},800);
 }
 function _applyDescPreview(checked,nd,normD,ed){
-  var dMap=JSON.parse(localStorage.getItem('descMap')||'{}');dMap[normD]=nd;localStorage.setItem('descMap',JSON.stringify(dMap));
+  var dMap=JSON.parse(localStorage.getItem('descMap')||'{}');dMap[normD]=nd;
+  var extraNorms={};
+  checked.forEach(function(r){var rn=normVendor(r._origDesc||r.payee||'');if(rn&&rn!==normD&&!extraNorms[rn]){extraNorms[rn]=1;dMap[rn]=nd;}});
+  localStorage.setItem('descMap',JSON.stringify(dMap));
   checked.forEach(function(r){r.description=nd;});
   google.script.run.withFailureHandler(function(){}).setDescRule(normD,nd);
+  Object.keys(extraNorms).forEach(function(en){google.script.run.withFailureHandler(function(){}).setDescRule(en,nd);});
   if(ed&&ed.td){ed.td.innerHTML=esc(nd)+'<span class="edit-hint">✏</span>';ed.td.setAttribute('data-desc',nd);}
   toast('Description renamed for '+checked.length+' transaction'+(checked.length!==1?'s':''));
   render();
