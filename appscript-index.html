@@ -963,7 +963,7 @@ function _applyCatPreview(checked,unchecked,nc,normD,ed){
 function _applyDescPreview(checked,nd,normD,ed){
   var dMap=JSON.parse(localStorage.getItem('descMap')||'{}');dMap[normD]=nd;localStorage.setItem('descMap',JSON.stringify(dMap));
   checked.forEach(function(r){r.description=nd;});
-  if(ed&&ed.cur)google.script.run.withFailureHandler(function(){}).renameDesc(ed.cur,nd);
+  google.script.run.withFailureHandler(function(){}).setDescRule(normD,nd);
   if(ed&&ed.td){ed.td.innerHTML=esc(nd)+'<span class="edit-hint">✏</span>';ed.td.setAttribute('data-desc',nd);}
   toast('Description renamed for '+checked.length+' transaction'+(checked.length!==1?'s':''));
   render();
