@@ -962,7 +962,6 @@ function _applyCatPreview(checked,unchecked,nc,normD,ed){
 }
 function _applyDescPreview(checked,nd,normD,ed){
   var dMap=JSON.parse(localStorage.getItem('descMap')||'{}');dMap[normD]=nd;
-  // Collect all unique descriptions to rename directly in the sheet (both displayed + origDesc)
   var descsToRename={};
   if(ed&&ed.cur)descsToRename[ed.cur]=1;
   checked.forEach(function(r){
@@ -972,19 +971,40 @@ function _applyDescPreview(checked,nd,normD,ed){
   });
   localStorage.setItem('descMap',JSON.stringify(dMap));
   checked.forEach(function(r){r.description=nd;});
-  var _onErr=function(e){toast('Save error: '+(e&&e.message||'server error'));};
-  // Direct exact-match rename for every unique description
-  Object.keys(descsToRename).forEach(function(desc){
-    google.script.run.withFailureHandler(_onErr).renameDesc(desc,nd);
-  });
-  // Normalized rule + sheet update via normVendorGS (handles payee-only rows)
-  google.script.run.withFailureHandler(_onErr).setDescRule(normD,nd);
-  // Delete any old stale rule that would still override the new description on reload
-  var _normNd=normVendor(nd);
-  if(_normNd&&_normNd!==normD){google.script.run.withFailureHandler(function(){}).setDescRule(_normNd,'');}
   if(ed&&ed.td){ed.td.innerHTML=esc(nd)+'<span class="edit-hint">✏</span>';ed.td.setAttribute('data-desc',nd);}
-  toast('Description renamed for '+checked.length+' transaction'+(checked.length!==1?'s':''));
-  setTimeout(function(){loadData();},1500);
+  render();
+  var _onErr=function(e){toast('Save error: '+(e&&e.message||'server error'));};
+  var _normNd=normVendor(nd);
+  var _deleteNorm=(_normNd&&_normNd!==normD)?_normNd:'';
+  // Sequential chain: delete stale rule → set new rule → rename sheet rows
+  // Sequential to avoid PropertiesService race condition (concurrent writes clobber each other)
+  function _doRenameRows(){
+    var descs=Object.keys(descsToRename);
+    if(!descs.length){toast('Renamed — reload device 2 to sync');return;}
+    var left=descs.length;
+    descs.forEach(function(desc){
+      google.script.run
+        .withSuccessHandler(function(){left--;if(!left)toast('Renamed — reload device 2 to sync');})
+        .withFailureHandler(_onErr)
+        .renameDesc(desc,nd);
+    });
+  }
+  function _doSetRule(){
+    google.script.run
+      .withSuccessHandler(function(){_doRenameRows();})
+      .withFailureHandler(_onErr)
+      .setDescRule(normD,nd);
+  }
+  toast('Saving…');
+  if(_deleteNorm){
+    // Delete stale rule first (requires Code.gs fix: if(!newDesc)return before sheet update)
+    google.script.run
+      .withSuccessHandler(_doSetRule)
+      .withFailureHandler(function(){_doSetRule();})
+      .setDescRule(_deleteNorm,'');
+  }else{
+    _doSetRule();
+  }
 }
 function _applyTransferPreview(checked){
   var ids=[];
