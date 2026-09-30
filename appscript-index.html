@@ -500,8 +500,7 @@ function renderDonut(rows){
     var pct=total?Math.round(e[1]/total*100):0;
     var on=STATE.catFilter===e[0]?'style="background:var(--bg)"':'';
     var ce=esc(e[0]);
-    var isDel=DEFAULT_CATS.indexOf(e[0])<0;
-    return'<div class="lrow" '+on+' onclick="toggleCat(\''+ce.replace(/'/g,"\\'")+'\')"><span class="sw" style="background:'+CAT_COLOR(e[0])+'"></span><span class="nm">'+ce+'</span><span class="amt">'+usdAbs(e[1])+'</span><span class="pct">'+pct+'%</span><span class="edit-hint" onclick="event.stopPropagation();editLegendCat(this,\''+ce.replace(/'/g,"\\'")+'\')">&#9998;</span>'+(isDel?'<span class="del-hint" title="Delete category" onclick="event.stopPropagation();deleteCat(\''+ce.replace(/'/g,"\\'")+'\')">&#10005;</span>':'')+'</div>';
+    return'<div class="lrow" '+on+' onclick="toggleCat(\''+ce.replace(/'/g,"\\'")+'\')"><span class="sw" style="background:'+CAT_COLOR(e[0])+'"></span><span class="nm">'+ce+'</span><span class="amt">'+usdAbs(e[1])+'</span><span class="pct">'+pct+'%</span><span class="edit-hint" onclick="event.stopPropagation();editLegendCat(this,\''+ce.replace(/'/g,"\\'")+'\')">&#9998;</span><span class="del-hint" title="Delete category" onclick="event.stopPropagation();deleteCat(\''+ce.replace(/'/g,"\\'")+'\')">&#10005;</span></div>';
   }).join('');
 }
 function renderIncomeDonut(rows){
@@ -520,8 +519,7 @@ function renderIncomeDonut(rows){
   leg2.innerHTML=entries.map(function(e){
     var pct=total?Math.round(e[1]/total*100):0;
     var ce=esc(e[0]);
-    var isDel2=DEFAULT_CATS.indexOf(e[0])<0;
-    return'<div class="lrow"><span class="sw" style="background:'+CAT_COLOR(e[0])+'"></span><span class="nm">'+ce+'</span><span class="amt">'+usdK(e[1])+'</span><span class="pct">'+pct+'%</span><span class="edit-hint" onclick="event.stopPropagation();editLegendCat(this,\''+ce.replace(/'/g,"\\'")+'\')">&#9998;</span>'+(isDel2?'<span class="del-hint" title="Delete category" onclick="event.stopPropagation();deleteCat(\''+ce.replace(/'/g,"\\'")+'\')">&#10005;</span>':'')+'</div>';
+    return'<div class="lrow"><span class="sw" style="background:'+CAT_COLOR(e[0])+'"></span><span class="nm">'+ce+'</span><span class="amt">'+usdK(e[1])+'</span><span class="pct">'+pct+'%</span><span class="edit-hint" onclick="event.stopPropagation();editLegendCat(this,\''+ce.replace(/'/g,"\\'")+'\')">&#9998;</span><span class="del-hint" title="Delete category" onclick="event.stopPropagation();deleteCat(\''+ce.replace(/'/g,"\\'")+'\')">&#10005;</span></div>';
   }).join('');
 }
 function getAccountType(nm){
