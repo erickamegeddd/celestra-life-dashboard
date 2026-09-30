@@ -676,16 +676,10 @@ function editDesc(ev,td){
       var nd=inp.value.trim();
       if(!nd||nd===cur){inp.blur();return;}
       _descSaved=true;
-      td.innerHTML=esc(nd)+'<span class="edit-hint">✏</span>';
-      td.setAttribute('data-desc',nd);
-      var _normKey=normVendor(td.getAttribute('data-orig')||cur);
-      ALL.forEach(function(r){var _rOrig=r._origDesc||(r.description||r.payee||'');if(normVendor(_rOrig)===_normKey)r.description=nd;});
-      var dMap=JSON.parse(localStorage.getItem('descMap')||'{}');
-      var origDesc=td.getAttribute('data-orig')||cur;var normCur=normVendor(origDesc);dMap[normCur]=nd;
-      localStorage.setItem('descMap',JSON.stringify(dMap));
-      toast('Description saved');
-      google.script.run.withFailureHandler(function(){}).renameDesc(cur,nd);
-      render();
+      td.innerHTML=esc(cur)+'<span class="edit-hint">&#9998;</span>';
+      td.setAttribute('data-desc',cur);
+      var origDesc=td.getAttribute('data-orig')||cur;
+      showPreviewModal('desc',normVendor(origDesc),nd,{td:td,cur:cur});
     }
   };
   inp.focus();inp.select();
