@@ -205,7 +205,7 @@ td{padding:7px 9px;border-bottom:1px solid var(--line);white-space:nowrap;overfl
         <input type="date" id="d-start" onchange="renderTx()"/>
         <span style="color:var(--muted);font-size:11px">to</span>
         <input type="date" id="d-end" onchange="renderTx()"/>
-        <select id="tx-acct-filter" class="flt" onchange="renderTx()" style="font-size:11px;padding:4px 20px 4px 7px"><option value="">All accounts</option></select>
+        <select id="tx-acct-filter" style="display:none"><option value="">All accounts</option></select><button id="tx-acct-filter-btn" class="flt" onclick="openCfPicker(this,'tx-acct-filter','All accounts')" style="font-size:11px;padding:4px 12px;cursor:pointer;background:#fff;font-family:inherit;color:var(--ink);text-align:left;">All accounts ▾</button>
         <input type="search" id="tx-search" placeholder="Search desc, category…" oninput="renderTx()"/>
         <button onclick="clearTxFilters()" style="font-size:11px;padding:3px 10px;border:1px solid var(--line);background:#fff;border-radius:6px;cursor:pointer;color:var(--muted);white-space:nowrap">✕ Clear filters</button>
         <span id="tx-count" style="color:var(--muted);font-size:11px;margin-left:auto"></span>
@@ -801,6 +801,7 @@ function clearTxFilters(){
   var ids=['d-start','d-end','tx-search','tx-acct-filter','cf-date','cf-account','cf-description','cf-category'];
   ids.forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
   var _cfcb=document.getElementById('cf-category-btn');if(_cfcb)_cfcb.textContent='All categories ▾';
+  var _tafb=document.getElementById('tx-acct-filter-btn');if(_tafb)_tafb.textContent='All accounts ▾';
   var _cfab=document.getElementById('cf-account-btn');if(_cfab)_cfab.textContent='All accounts ▾';
   var _cfdb=document.getElementById('cf-description-btn');if(_cfdb)_cfdb.textContent='All descriptions ▾';
   STATE.page=1;STATE.customStart='';STATE.customEnd='';
