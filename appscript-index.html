@@ -972,12 +972,16 @@ function _applyDescPreview(checked,nd,normD,ed){
   });
   localStorage.setItem('descMap',JSON.stringify(dMap));
   checked.forEach(function(r){r.description=nd;});
-  // Direct exact-match rename for every unique description (the approach that works)
+  var _onErr=function(e){toast('Save error: '+(e&&e.message||'server error'));};
+  // Direct exact-match rename for every unique description
   Object.keys(descsToRename).forEach(function(desc){
-    google.script.run.withFailureHandler(function(){}).renameDesc(desc,nd);
+    google.script.run.withFailureHandler(_onErr).renameDesc(desc,nd);
   });
-  // Also save normalized rules (for future transactions with same original vendor)
-  google.script.run.withFailureHandler(function(){}).setDescRule(normD,nd);
+  // Normalized rule + sheet update via normVendorGS (handles payee-only rows)
+  google.script.run.withFailureHandler(_onErr).setDescRule(normD,nd);
+  // Delete any old stale rule that would still override the new description on reload
+  var _normNd=normVendor(nd);
+  if(_normNd&&_normNd!==normD){google.script.run.withFailureHandler(function(){}).setDescRule(_normNd,'');}
   if(ed&&ed.td){ed.td.innerHTML=esc(nd)+'<span class="edit-hint">✏</span>';ed.td.setAttribute('data-desc',nd);}
   toast('Description renamed for '+checked.length+' transaction'+(checked.length!==1?'s':''));
   setTimeout(function(){loadData();},1500);
