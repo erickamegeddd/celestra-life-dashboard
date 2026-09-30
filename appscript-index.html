@@ -78,8 +78,10 @@ td{padding:7px 9px;border-bottom:1px solid var(--line);white-space:nowrap;overfl
 .amt-pos{color:var(--pos);font-weight:700}
 .amt-neg{color:var(--neg);font-weight:700}
 .right{text-align:right}
-.edit-hint{font-size:10px;opacity:.35;cursor:pointer;margin-left:3px}
-.edit-hint:hover{opacity:1;color:var(--accent)}
+.edit-hint{font-size:10px;cursor:pointer;margin-left:4px;padding:1px 5px;border-radius:3px;background:rgba(0,0,0,0.07);color:var(--muted)}
+.edit-hint:hover{background:var(--accent-soft);color:var(--accent)}
+.del-hint{font-size:10px;cursor:pointer;margin-left:2px;padding:1px 5px;border-radius:3px;background:rgba(220,38,38,0.1);color:var(--neg)}
+.del-hint:hover{background:var(--neg);color:#fff}
 .cat-select{font-size:12px;border:1px solid var(--accent);border-radius:5px;padding:2px 4px;background:var(--panel);color:var(--ink);outline:none}
 #overview,#accounts{display:none}
 #overview.active,#accounts.active{display:block}
@@ -355,6 +357,7 @@ function applyBulkCat(){
     renderDonut(filtered());
   }catch(e){toast('Error: '+e.message,'err');}
 }
+var DEFAULT_CATS=['Bank Fees & Interest','Business Income','Credit Card Payments','Dining','Gas & Fuel','Groceries','Healthcare','Income','Insurance','Investment','Marketing & Advertising','Office & Technology','Online Shopping','Other Income','Payroll','Professional Services','Rent & Mortgage','Transfers Out','Travel','Uncategorized/Other'];
 var CUSTOM_CATS=JSON.parse(localStorage.getItem('expCats')||'[]');
 var ALL_CATS=['Bank Fees & Interest','Business Income','Credit Card Payments','Dining','Gas & Fuel','Groceries','Healthcare','Income','Insurance','Investment','Marketing & Advertising','Office & Technology','Online Shopping','Other Income','Payroll','Professional Services','Rent & Mortgage','Transfers Out','Travel','Uncategorized/Other'].concat(CUSTOM_CATS).sort(function(a,b){return a.toLowerCase()<b.toLowerCase()?-1:a.toLowerCase()>b.toLowerCase()?1:0;});
 var COLORS=['#15803d','#ef4444','#f59e0b','#3b82f6','#8b5cf6','#ec4899','#14b8a6','#f97316','#84cc16','#06b6d4','#a855f7','#64748b','#0ea5e9','#d946ef','#22c55e','#eab308','#6366f1'];
@@ -497,8 +500,8 @@ function renderDonut(rows){
     var pct=total?Math.round(e[1]/total*100):0;
     var on=STATE.catFilter===e[0]?'style="background:var(--bg)"':'';
     var ce=esc(e[0]);
-    var isDel=CUSTOM_CATS.indexOf(e[0])>=0;
-    return'<div class="lrow" '+on+' onclick="toggleCat(\''+ce.replace(/'/g,"\\'")+'\')"><span class="sw" style="background:'+CAT_COLOR(e[0])+'"></span><span class="nm">'+ce+'</span><span class="amt">'+usdAbs(e[1])+'</span><span class="pct">'+pct+'%</span><span class="edit-hint" onclick="event.stopPropagation();editLegendCat(this,\''+ce.replace(/'/g,"\\'")+'\')">&#9998;</span>'+(isDel?'<span class="edit-hint" style="color:var(--neg)" title="Delete category" onclick="event.stopPropagation();deleteCat(\''+ce.replace(/'/g,"\\'")+'\')">&#10005;</span>':'')+'</div>';
+    var isDel=DEFAULT_CATS.indexOf(e[0])<0;
+    return'<div class="lrow" '+on+' onclick="toggleCat(\''+ce.replace(/'/g,"\\'")+'\')"><span class="sw" style="background:'+CAT_COLOR(e[0])+'"></span><span class="nm">'+ce+'</span><span class="amt">'+usdAbs(e[1])+'</span><span class="pct">'+pct+'%</span><span class="edit-hint" onclick="event.stopPropagation();editLegendCat(this,\''+ce.replace(/'/g,"\\'")+'\')">&#9998;</span>'+(isDel?'<span class="del-hint" title="Delete category" onclick="event.stopPropagation();deleteCat(\''+ce.replace(/'/g,"\\'")+'\')">&#10005;</span>':'')+'</div>';
   }).join('');
 }
 function renderIncomeDonut(rows){
@@ -517,8 +520,8 @@ function renderIncomeDonut(rows){
   leg2.innerHTML=entries.map(function(e){
     var pct=total?Math.round(e[1]/total*100):0;
     var ce=esc(e[0]);
-    var isDel2=CUSTOM_CATS.indexOf(e[0])>=0;
-    return'<div class="lrow"><span class="sw" style="background:'+CAT_COLOR(e[0])+'"></span><span class="nm">'+ce+'</span><span class="amt">'+usdK(e[1])+'</span><span class="pct">'+pct+'%</span><span class="edit-hint" onclick="event.stopPropagation();editLegendCat(this,\''+ce.replace(/'/g,"\\'")+'\')">&#9998;</span>'+(isDel2?'<span class="edit-hint" style="color:var(--neg)" title="Delete category" onclick="event.stopPropagation();deleteCat(\''+ce.replace(/'/g,"\\'")+'\')">&#10005;</span>':'')+'</div>';
+    var isDel2=DEFAULT_CATS.indexOf(e[0])<0;
+    return'<div class="lrow"><span class="sw" style="background:'+CAT_COLOR(e[0])+'"></span><span class="nm">'+ce+'</span><span class="amt">'+usdK(e[1])+'</span><span class="pct">'+pct+'%</span><span class="edit-hint" onclick="event.stopPropagation();editLegendCat(this,\''+ce.replace(/'/g,"\\'")+'\')">&#9998;</span>'+(isDel2?'<span class="del-hint" title="Delete category" onclick="event.stopPropagation();deleteCat(\''+ce.replace(/'/g,"\\'")+'\')">&#10005;</span>':'')+'</div>';
   }).join('');
 }
 function getAccountType(nm){
