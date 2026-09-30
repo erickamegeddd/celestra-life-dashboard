@@ -605,7 +605,7 @@ function renderAccounts(){
 }
 var FILTERS={};
 var REC_FILTERS={};
-var REC_SORT={col:'total',dir:-1};var REC_ACCT='';var REC_CAT_FILTER=new Set();var REC_COL_CAT=new Set();
+var REC_SORT={col:'total',dir:-1};var REC_ACCT='';var REC_CAT_FILTER=new Set();var REC_COL_SETS={vendor:new Set(),account:new Set(),category:new Set()};
 function openRecCatPicker(btn){
   var p=document.getElementById('rec-cat-picker'),ov=document.getElementById('rec-cat-overlay');if(!p)return;
   var rect=btn.getBoundingClientRect();
@@ -999,36 +999,19 @@ function openRecCF(col,th){
   d.innerHTML='';d.onclick=null;
   var srch=document.createElement('input');srch.className='cfd-search';srch.placeholder='Type to search...';srch.oninput=function(){filterCFD(this);};
   d.appendChild(srch);
-  if(col==='category'){
-    var clr=document.createElement('div');clr.className='cfi';clr.style.cssText='color:var(--muted);border-bottom:1px solid var(--line)';clr.innerHTML='<em>\u2014 Clear all \u2014</em>';
-    clr.onclick=function(){REC_COL_CAT.clear();d.style.display='none';_cfd_col=null;renderRecurring();};
-    d.appendChild(clr);
-    vals.forEach(function(c){
-      var row=document.createElement('div');row.className='cfi';
-      var cb=document.createElement('input');cb.type='checkbox';cb.checked=REC_COL_CAT.has(c);cb.style.cssText='accent-color:var(--accent);cursor:pointer;margin-right:6px;flex-shrink:0;vertical-align:middle';
-      var dot=document.createElement('span');dot.className='cat-dot';dot.style.background=CAT_COLOR(c);
-      var txt=document.createTextNode(c);
-      row.appendChild(cb);row.appendChild(dot);row.appendChild(txt);
-      cb.onchange=function(){if(this.checked)REC_COL_CAT.add(c);else REC_COL_CAT.delete(c);renderRecurring();};
-      row.onclick=function(e){if(e.target===cb)return;if(REC_COL_CAT.has(c))REC_COL_CAT.delete(c);else REC_COL_CAT.add(c);cb.checked=REC_COL_CAT.has(c);renderRecurring();};
-      d.appendChild(row);
-    });
-  } else {
-    var rkey='rec:'+col;
-    var allDiv=document.createElement('div');allDiv.className='cfi cfi-all';allDiv.setAttribute('data-col',rkey);allDiv.innerHTML='<em>\u2014 Show all \u2014</em>';
-    d.appendChild(allDiv);
-    vals.forEach(function(v){
-      var row=document.createElement('div');row.className='cfi'+(REC_FILTERS[col]===v?' cfi-sel':'');row.setAttribute('data-col',rkey);row.setAttribute('data-val',v);row.textContent=v;
-      d.appendChild(row);
-    });
-    d.onclick=function(e){
-      var item=e.target.closest?e.target.closest('.cfi'):e.target;
-      if(!item||!item.classList||!item.classList.contains('cfi'))return;
-      var c=item.getAttribute('data-col').replace('rec:','');
-      var v=item.classList.contains('cfi-all')?null:item.getAttribute('data-val');
-      setRecCF(c,v);
-    };
-  }
+  var colSet=REC_COL_SETS[col];
+  var clr=document.createElement('div');clr.className='cfi';clr.style.cssText='color:var(--muted);border-bottom:1px solid var(--line)';clr.innerHTML='<em>\u2014 Clear all \u2014</em>';
+  clr.onclick=function(){colSet.clear();d.style.display='none';_cfd_col=null;renderRecurring();};
+  d.appendChild(clr);
+  vals.forEach(function(val){
+    var row=document.createElement('div');row.className='cfi';
+    var cb=document.createElement('input');cb.type='checkbox';cb.checked=colSet.has(val);cb.style.cssText='accent-color:var(--accent);cursor:pointer;margin-right:6px;flex-shrink:0;vertical-align:middle';
+    if(col==='category'){var dot=document.createElement('span');dot.className='cat-dot';dot.style.background=CAT_COLOR(val);row.appendChild(cb);row.appendChild(dot);}else{row.appendChild(cb);}
+    row.appendChild(document.createTextNode(val));
+    cb.onchange=function(){if(this.checked)colSet.add(val);else colSet.delete(val);renderRecurring();};
+    row.onclick=function(e){if(e.target===cb)return;if(colSet.has(val))colSet.delete(val);else colSet.add(val);cb.checked=colSet.has(val);renderRecurring();};
+    d.appendChild(row);
+  });
   d.style.display='block';
   setTimeout(function(){srch.focus();},30);
 }
@@ -1102,9 +1085,9 @@ function renderRecurring(){
   });
   _recUnfiltered=recurring.slice();
   if(STATE.catFilter)recurring=recurring.filter(function(v){return v.category===STATE.catFilter;});
-  if(REC_FILTERS.vendor)recurring=recurring.filter(function(v){return v.display===REC_FILTERS.vendor;});
-  if(REC_COL_CAT.size>0)recurring=recurring.filter(function(v){return REC_COL_CAT.has(v.category);});
-  if(REC_FILTERS.account)recurring=recurring.filter(function(v){return Object.keys(v.accts||{}).indexOf(REC_FILTERS.account)!==-1;});
+  if(REC_COL_SETS.vendor.size>0)recurring=recurring.filter(function(v){return REC_COL_SETS.vendor.has(v.display);});
+  if(REC_COL_SETS.category.size>0)recurring=recurring.filter(function(v){return REC_COL_SETS.category.has(v.category);});
+  if(REC_COL_SETS.account.size>0)recurring=recurring.filter(function(v){return Object.keys(v.accts||{}).some(function(a){return REC_COL_SETS.account.has(a);});});
   if(REC_CAT_FILTER.size>0)recurring=recurring.filter(function(v){return REC_CAT_FILTER.has(v.category);});
   _recVendors=recurring.slice();
   var moSet={};recurring.forEach(function(v){Object.keys(v.months).forEach(function(mo){moSet[mo]=1;});});
@@ -1131,9 +1114,9 @@ function renderRecurring(){
   var moTotals={};months.forEach(function(mo){moTotals[mo]=0;});
   recurring.forEach(function(v){months.forEach(function(mo){moTotals[mo]+=(v.months[mo]||0);});});
   var thead='<thead><tr>'+
-    '<th style="white-space:nowrap"><span style="cursor:pointer" onclick="sortRec(\'vendor\')">Vendor <span style="font-size:9px">'+recSortArrow('vendor')+'</span></span> <span class="th-filt" onclick="openRecCF(\'vendor\',this.parentElement)" style="font-size:10px;color:'+(REC_FILTERS.vendor?'var(--accent)':'var(--muted)')+'">▼</span></th>'+
-    '<th style="white-space:nowrap"><span style="cursor:pointer" onclick="sortRec(\'account\')">Account <span style="font-size:9px">'+recSortArrow('account')+'</span></span> <span class="th-filt" onclick="openRecCF(\'account\',this.parentElement)" style="font-size:10px;color:'+(REC_FILTERS.account?'var(--accent)':'var(--muted)')+'">▼</span></th>'+
-    '<th style="white-space:nowrap"><span style="cursor:pointer" onclick="sortRec(\'category\')">Category <span style="font-size:9px">'+recSortArrow('category')+'</span></span> <span class="th-filt" onclick="openRecCF(\'category\',this.parentElement)" style="font-size:10px;color:'+(REC_COL_CAT.size>0?'var(--accent)':'var(--muted)')+'">▼</span></th>'+
+    '<th style="white-space:nowrap"><span style="cursor:pointer" onclick="sortRec(\'vendor\')">Vendor <span style="font-size:9px">'+recSortArrow('vendor')+'</span></span> <span class="th-filt" onclick="openRecCF(\'vendor\',this.parentElement)" style="font-size:10px;color:'+(REC_COL_SETS.vendor.size>0?'var(--accent)':'var(--muted)')+'">▼</span></th>'+
+    '<th style="white-space:nowrap"><span style="cursor:pointer" onclick="sortRec(\'account\')">Account <span style="font-size:9px">'+recSortArrow('account')+'</span></span> <span class="th-filt" onclick="openRecCF(\'account\',this.parentElement)" style="font-size:10px;color:'+(REC_COL_SETS.account.size>0?'var(--accent)':'var(--muted)')+'">▼</span></th>'+
+    '<th style="white-space:nowrap"><span style="cursor:pointer" onclick="sortRec(\'category\')">Category <span style="font-size:9px">'+recSortArrow('category')+'</span></span> <span class="th-filt" onclick="openRecCF(\'category\',this.parentElement)" style="font-size:10px;color:'+(REC_COL_SETS.category.size>0?'var(--accent)':'var(--muted)')+'">▼</span></th>'+
     months.map(function(mo){return'<th class="r">'+moLabel(mo)+'</th>';}).join('')+
     '<th class="r" style="cursor:pointer;white-space:nowrap" onclick="sortRec(\'avg\')">Avg/mo <span style="font-size:10px">'+recSortArrow('avg')+'</span></th>'+
     '<th class="r" style="cursor:pointer;white-space:nowrap" onclick="sortRec(\'total\')">Total <span style="font-size:10px">'+recSortArrow('total')+'</span></th>'+
