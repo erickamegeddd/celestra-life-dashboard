@@ -716,7 +716,7 @@ function editDesc(ev,td){
     td.innerHTML=esc(cur)+'<span class="edit-hint">&#9998;</span>';
     td.setAttribute('data-desc',cur);
     var origDesc=td.getAttribute('data-orig')||cur;
-    showPreviewModal('desc',normVendor(origDesc),nd,{td:td,cur:cur});
+    showPreviewModal('desc',normVendor(origDesc),nd,{td:td,cur:cur,normCur:normVendor(cur)});
   }
   td.innerHTML='';td.appendChild(inp);td.appendChild(_ck);td.appendChild(_cx);
   inp.onclick=function(e){e.stopPropagation();};
@@ -884,7 +884,7 @@ var _preview={type:'',normD:'',nc:'',matches:[],editData:{}};
 function showPreviewModal(type,normD,nc,editData){
   var matches;
   if(type==='transfer'||type==='transfer-income'){matches=editData.matches;}
-  else{matches=ALL.filter(function(r){var _nd1=normVendor(r._origDesc||r.description||r.payee||'');var _nd2=normVendor(r.description||r.payee||'');return _nd1===normD||_nd2===normD;});}
+  else{var _nc=editData&&editData.normCur?editData.normCur:normD;matches=ALL.filter(function(r){var _nd1=normVendor(r._origDesc||r.description||r.payee||'');var _nd2=normVendor(r.description||r.payee||'');return _nd1===normD||_nd2===normD||_nd1===_nc||_nd2===_nc;});}
   _preview={type:type,normD:normD,nc:nc,matches:matches,editData:editData};
   var tEl=document.getElementById('pm-title'),sEl=document.getElementById('pm-sub'),lEl=document.getElementById('pm-list');
   if(type==='cat'){tEl.innerHTML='Apply '+(nc?catTag(nc):'<em style="color:var(--muted)">None</em>')+' to matching transactions?';}
@@ -961,16 +961,28 @@ function _applyCatPreview(checked,unchecked,nc,normD,ed){
   setTimeout(function(){loadData();},800);
 }
 function _applyDescPreview(checked,nd,normD,ed){
-  var dMap=JSON.parse(localStorage.getItem('descMap')||'{}');dMap[normD]=nd;
-  var extraNorms={};
-  checked.forEach(function(r){var rn=normVendor(r._origDesc||r.payee||'');if(rn&&rn!==normD&&!extraNorms[rn]){extraNorms[rn]=1;dMap[rn]=nd;}});
+  // Collect all unique normalized keys + all unique _origDesc values from confirmed set
+  var dMap=JSON.parse(localStorage.getItem('descMap')||'{}');
+  var allNorms={};allNorms[normD]=1;
+  var origDescs={};
+  checked.forEach(function(r){
+    var n1=normVendor(r._origDesc||r.payee||'');
+    var n2=normVendor(r.description||r.payee||'');
+    if(n1){allNorms[n1]=1;}if(n2){allNorms[n2]=1;}
+    var orig=(r._origDesc||r.payee||'').trim();if(orig)origDescs[orig]=1;
+  });
+  Object.keys(allNorms).forEach(function(n){dMap[n]=nd;});
   localStorage.setItem('descMap',JSON.stringify(dMap));
   checked.forEach(function(r){r.description=nd;});
-  google.script.run.withFailureHandler(function(){}).setDescRule(normD,nd);
-  Object.keys(extraNorms).forEach(function(en){google.script.run.withFailureHandler(function(){}).setDescRule(en,nd);});
+  var _onErr=function(e){toast('Rename save error: '+(e&&e.message||'server error'));};
+  // Rule-based update (normalized match) for all key variants
+  Object.keys(allNorms).forEach(function(n){google.script.run.withFailureHandler(_onErr).setDescRule(n,nd);});
+  // Direct exact-match update for each unique original sheet value
+  Object.keys(origDescs).forEach(function(orig){google.script.run.withFailureHandler(function(){}).renameDesc(orig,nd);});
   if(ed&&ed.td){ed.td.innerHTML=esc(nd)+'<span class="edit-hint">✏</span>';ed.td.setAttribute('data-desc',nd);}
-  toast('Description renamed for '+checked.length+' transaction'+(checked.length!==1?'s':''));
-  render();
+  toast('Renamed '+checked.length+' transaction'+(checked.length!==1?'s':'')+'. Syncing...');
+  // Reload from server so _origDesc reflects current sheet state (same as category renames do)
+  setTimeout(function(){loadData();},1500);
 }
 function _applyTransferPreview(checked){
   var ids=[];
