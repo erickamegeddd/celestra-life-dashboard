@@ -245,6 +245,7 @@ td{padding:7px 9px;border-bottom:1px solid var(--line);white-space:nowrap;overfl
           <b style="font-size:13px">Recurring Charges</b>
           <button id="rec-acct-btn" class="flt" onclick="openRecAcctPicker(this)" style="font-size:12px;padding:6px 14px;cursor:pointer;background:#fff;font-family:inherit;color:var(--ink);text-align:left;border:1px solid var(--line);border-radius:8px;white-space:nowrap;">All accounts ▾</button>
           <button id="rec-cat-btn" onclick="openRecCatPicker(this)">All categories ▾</button>
+          <button onclick="clearRecFilters()" style="font-size:11px;padding:3px 10px;border:1px solid var(--line);background:#fff;border-radius:6px;cursor:pointer;color:var(--muted);white-space:nowrap">✕ Clear filters</button>
         </div>
         <div class="rec-kpis" id="rec-kpis"></div>
         <div style="position:relative;height:180px;margin-bottom:14px"><canvas id="recChart"></canvas></div>
@@ -819,6 +820,16 @@ function clearTxFilters(){
   var _cfdb=document.getElementById('cf-description-btn');if(_cfdb)_cfdb.textContent='All descriptions ▾';
   STATE.page=1;STATE.customStart='';STATE.customEnd='';STATE.typeFilter='';
   renderMonthBtns();renderTx();
+}
+function clearRecFilters(){
+  REC_ACCT_SET.clear();
+  REC_CAT_FILTER.clear();
+  REC_COL_SETS.vendor.clear();REC_COL_SETS.account.clear();REC_COL_SETS.category.clear();
+  for(var k in REC_FILTERS){if(REC_FILTERS.hasOwnProperty(k))delete REC_FILTERS[k];}
+  var _rab=document.getElementById('rec-acct-btn');if(_rab)_rab.textContent='All accounts ▾';
+  updateRecCatBtn();
+  _closeCFD();
+  renderRecurring();
 }
 function openCfCatPicker(btn){
   if(document.getElementById('_cfcp'))return;
