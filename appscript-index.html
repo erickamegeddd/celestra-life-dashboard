@@ -1250,8 +1250,9 @@ function renderMonthBtns(){
     else{
       btn.classList.remove('mp-active');
       if(sub){
-        var dsLabel=ds.value.slice(5).replace('-','/');
-        var deLabel=(de&&de.value)?de.value.slice(5).replace('-','/'):'(no end)';
+        function _fmtD(v){var pp=v.split('-');return mNames[parseInt(pp[1],10)-1]+' '+parseInt(pp[2],10);}
+        var dsLabel=_fmtD(ds.value);
+        var deLabel=(de&&de.value)?_fmtD(de.value):'(no end)';
         sub.textContent='showing '+dsLabel+' – '+deLabel;
       }
     }
