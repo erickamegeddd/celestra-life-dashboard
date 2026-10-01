@@ -1045,6 +1045,7 @@ function _applyDescPreview(checked,nd,normD,ed){
     var disp=(r.description||r.payee||'').trim();if(disp)descsToRename[disp]=1;
     var orig=(r._origDesc||r.payee||'').trim();if(orig)descsToRename[orig]=1;
   });
+  var _ndTrim=nd.trim();var _ndNV=normVendor(nd);[_ndNV,_ndNV.replace(/#/g,'').replace(/\s{2,}/g,' ').trim(),_ndTrim.toLowerCase(),_ndTrim].forEach(function(k){if(k&&dMap[k]&&dMap[k]!==nd)delete dMap[k];});
   localStorage.setItem('descMap',JSON.stringify(dMap));
   checked.forEach(function(r){r.description=nd;});
   if(ed&&ed.td){ed.td.innerHTML=esc(nd)+'<span class="edit-hint">✏</span>';ed.td.setAttribute('data-desc',nd);}
