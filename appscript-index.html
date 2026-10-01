@@ -1237,8 +1237,16 @@ function renderRecurring(){
 function renderMonthBtns(){
   var btn=document.getElementById('month-picker-btn');if(!btn)return;
   var mNames=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  var ds=document.getElementById('d-start');
-  if(ds&&ds.value){var ym=ds.value.slice(0,7);var p=ym.split('-');btn.textContent=mNames[parseInt(p[1],10)-1]+' \''+p[0].slice(2)+' ▾';btn.classList.add('mp-active');}
+  var ds=document.getElementById('d-start');var de=document.getElementById('d-end');
+  if(ds&&ds.value){
+    var ym=ds.value.slice(0,7);var p=ym.split('-');
+    var y=parseInt(p[0]);var m=parseInt(p[1]);
+    var last=new Date(y,m,0).getDate();
+    var expStart=ym+'-01';var expEnd=ym+'-'+(last<10?'0':'')+last;
+    var isFullMonth=(ds.value===expStart)&&(de&&de.value===expEnd);
+    btn.textContent=mNames[m-1]+' \''+p[0].slice(2)+' ▾';
+    if(isFullMonth){btn.classList.add('mp-active');}else{btn.classList.remove('mp-active');}
+  }
   else{btn.textContent='All months ▾';btn.classList.remove('mp-active');}
 }
 function openMonthPicker(btn){
