@@ -1047,7 +1047,7 @@ function _applyDescPreview(checked,nd,normD,ed){
   });
   var _ndTrim=nd.trim();var _ndNV=normVendor(nd);[_ndNV,_ndNV.replace(/#/g,'').replace(/\s{2,}/g,' ').trim(),_ndTrim.toLowerCase(),_ndTrim].forEach(function(k){if(k&&dMap[k]&&dMap[k]!==nd)delete dMap[k];});
   localStorage.setItem('descMap',JSON.stringify(dMap));
-  checked.forEach(function(r){r.description=nd;});
+  checked.forEach(function(r){r.description=nd;r._origDesc=nd;});
   if(ed&&ed.td){ed.td.innerHTML=esc(nd)+'<span class="edit-hint">✏</span>';ed.td.setAttribute('data-desc',nd);}
   render();
   var _onErr=function(e){toast('Save error: '+(e&&e.message||'server error'));};
