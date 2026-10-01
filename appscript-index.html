@@ -1236,6 +1236,7 @@ function renderRecurring(){
 }
 function renderMonthBtns(){
   var btn=document.getElementById('month-picker-btn');if(!btn)return;
+  var sub=document.getElementById('month-picker-sub');
   var mNames=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   var ds=document.getElementById('d-start');var de=document.getElementById('d-end');
   if(ds&&ds.value){
@@ -1245,9 +1246,17 @@ function renderMonthBtns(){
     var expStart=ym+'-01';var expEnd=ym+'-'+(last<10?'0':'')+last;
     var isFullMonth=(ds.value===expStart)&&(de&&de.value===expEnd);
     btn.textContent=mNames[m-1]+' \''+p[0].slice(2)+' ▾';
-    if(isFullMonth){btn.classList.add('mp-active');}else{btn.classList.remove('mp-active');}
+    if(isFullMonth){btn.classList.add('mp-active');if(sub)sub.textContent='';}
+    else{
+      btn.classList.remove('mp-active');
+      if(sub){
+        var dsLabel=ds.value.slice(5).replace('-','/');
+        var deLabel=(de&&de.value)?de.value.slice(5).replace('-','/'):'(no end)';
+        sub.textContent='showing '+dsLabel+' – '+deLabel;
+      }
+    }
   }
-  else{btn.textContent='All months ▾';btn.classList.remove('mp-active');}
+  else{btn.textContent='All months ▾';btn.classList.remove('mp-active');if(sub)sub.textContent='';}
 }
 function openMonthPicker(btn){
   var p=document.getElementById('month-picker'),ov=document.getElementById('month-picker-ov');if(!p)return;
