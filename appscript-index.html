@@ -1056,14 +1056,43 @@ function _applyDescPreview(checked,nd,normD,ed){
   // Sequential to avoid PropertiesService race condition (concurrent writes clobber each other)
   function _doRenameRows(){
     var descs=Object.keys(descsToRename);
-    if(!descs.length){toast('Renamed — reload device 2 to sync');return;}
+    if(!descs.length){_doMigrateCat();return;}
     var left=descs.length;
     descs.forEach(function(desc){
       google.script.run
-        .withSuccessHandler(function(){left--;if(!left)toast('Renamed — reload device 2 to sync');})
+        .withSuccessHandler(function(){left--;if(!left)_doMigrateCat();})
         .withFailureHandler(_onErr)
         .renameDesc(desc,nd);
     });
+  }
+  function _doMigrateCat(){
+    // After rename: carry per-row categories to sheet + migrate vendor rule to new desc key
+    var _bulkCatIds=[];
+    checked.forEach(function(r){if(r.id&&r.category)_bulkCatIds.push({id:r.id,cat:r.category});});
+    var _curCat='';
+    for(var _mi=0;_mi<checked.length;_mi++){if(checked[_mi].category){_curCat=checked[_mi].category;break;}}
+    function _doFinish(){
+      if(_bulkCatIds.length){
+        google.script.run
+          .withSuccessHandler(function(){toast('Renamed — reload device 2 to sync');})
+          .withFailureHandler(function(){toast('Renamed — reload device 2 to sync');})
+          .bulkUpdateCategories(_bulkCatIds);
+      }else{toast('Renamed — reload device 2 to sync');}
+    }
+    function _doSetNewKey(){
+      if(_curCat&&_normNd&&_normNd!==normD){
+        google.script.run
+          .withSuccessHandler(function(){_doFinish();})
+          .withFailureHandler(function(){_doFinish();})
+          .setCatRule(_normNd,_curCat);
+      }else{_doFinish();}
+    }
+    if(normD){
+      google.script.run
+        .withSuccessHandler(function(){_doSetNewKey();})
+        .withFailureHandler(function(){_doSetNewKey();})
+        .setCatRule(normD,'');
+    }else{_doSetNewKey();}
   }
   function _doSetRule(){
     google.script.run
